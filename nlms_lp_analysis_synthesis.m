@@ -1,0 +1,14 @@
+N = 10000;
+v = randn(1,N);
+B = [1];
+A = [1 -1.2728 0.81];
+d = filter(B,A,v);
+bet = 0.001;
+p = 2;
+[_A,E] = nlms_lp_analysis(d,bet,p);
+t = [1:N] - 1;
+subplot(2,1,1);
+plot(t,_A(:,1),_A(:,2));
+[_B,D] = nlms_lp_synthesis(E,bet,p);
+subplot(2,1,2);
+plot(t,_B(:,1),_B(:,2));
