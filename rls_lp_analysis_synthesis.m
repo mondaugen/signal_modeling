@@ -1,0 +1,14 @@
+N = 10000;
+v = randn(1,N);
+B = [1];
+A = [1 -1.2728 0.81];
+d = filter(B,A,v);
+lambda = 0.9999;
+p = 2;
+[_A,E] = rls_lp_analysis(d,p,lambda);
+t = [1:N] - 1;
+subplot(2,1,1);
+plot(t,_A);
+[_B,D] = rls_lp_synthesis(E,p,lambda);
+subplot(2,1,2);
+plot(t,_B);
