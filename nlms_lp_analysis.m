@@ -3,6 +3,7 @@ function [A,E] = nlms_lp_analysis(d,be,p,a0)
 % of order p and its error signal E
 % Based on Hayes's implementation of LMS (Hayes p. 506)
 % pad the beginning of d with p zeros
+% By Nicholas Esterer
 d = [zeros(p,1); d(:)];
 % make a way to look up negative values in d all the way to -p + 1
 d_ = @(n) d((n) + p);

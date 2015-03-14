@@ -3,6 +3,7 @@ function [A,d] = nlms_lp_synthesis(E,be,p,a0)
 % of order p and its original signal d from the error signal E 
 % Based on Hayes's implementation of LMS (Hayes p. 506)
 % pad the beginning of d with p zeros and initialize to 0
+% by Nicholas Esterer
 M = length(E);
 d = [zeros(p+M,1)];
 if nargin < 5, a0 = zeros(1,p); end;
