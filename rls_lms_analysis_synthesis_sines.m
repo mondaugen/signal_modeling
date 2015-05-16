@@ -16,7 +16,7 @@ be = 0.05;       % NLMS gradient coefficient
 
 phi = rand(m,1)*2*pi; % phases of sinusoids
 n = [1:N] - 1;        % sample indices
-v = randn(1,N)*rho^2; % noise
+v = randn(1,N)*rho; % noise
 x = sum(A*cos((1:m)'*n*w0+phi*ones(1,N)),1); % sum of sines
 d = x + v; % sines plus noise
 
