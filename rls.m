@@ -1,4 +1,4 @@
-function [W,E] = rls(x,d,nord,lambda)
+function [W,E,apri,apost] = rls(x,d,nord,lambda)
 %
 delta=0.001;
 X=convm(x,nord);
@@ -9,9 +9,11 @@ W(1,:)=zeros(1,N);
 for k=2:M-nord+1,
     z=P*X(k,:)';
     g=z/(lambda+X(k,:)*z);
-    alpha=d(k)-X(k,:)*W(k-1,:).'; % a priori error
+    apri(k)=X(k,:)*W(k-1,:).'
+    alpha=d(k)-apri; % a priori error
     W(k,:)=W(k-1,:)+alpha*g.';
-    E(k)=d(k)-X(k,:)*W(k,:).';    % a posteriori error
+    apost(k)=X(k,:)*W(k,:).';
+    E(k)=d(k)-apost;    % a posteriori error
     P=(P-g*z.')/lambda;
 end;
     
