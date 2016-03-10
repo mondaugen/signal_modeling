@@ -1,3 +1,4 @@
 *.wav
 octave-workspace
 tmp
+*.DS_Store
