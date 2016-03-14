@@ -1,8 +1,8 @@
 function [W,d] = rlspyk_synthesis(E,p,lambda)
-% RLSPYK_SYNTHESIS - RLS predictor in synthesis configuration as 
-% implemented by Yu and Ko in "Lossless
-% Compression of Digital Audio Using Cascaded RLS-LMS Prediction," IEEE
-% Trans. Speech Audio Processing, Vol. 11, No. 6, November 2003.
+% RLSPYK_SYNTHESIS - RLS predictor in synthesis configuration as implemented by
+% Yu and Ko in "Lossless Compression of Digital Audio Using Cascaded RLS-LMS
+% Prediction," IEEE Trans. Speech Audio Processing, Vol. 11, No. 6, November
+% 2003.
 M = length(E);
 d = zeros(p+M,1);
 delta=0.001;

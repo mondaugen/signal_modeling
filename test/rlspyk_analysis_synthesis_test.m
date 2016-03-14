@@ -3,10 +3,12 @@ v = randn(1,N);
 B = [1];
 A = [1 -1.2728 0.81];
 d = filter(B,A,v);
-p = 2;
 lambda = 0.9999;
-x = filter([0 1],[1],d); % delay d by one sample to get input
-%[_A,E] = rls(x,d,p,lambda);
+p = 2;
 [A_,E] = rlspyk_analysis(d,p,lambda);
 t = [1:N+1] - 1;
+subplot(2,1,1);
 plot(t,A_);
+[B_,D] = rlspyk_synthesis(E,p,lambda);
+subplot(2,1,2);
+plot(t,B_);

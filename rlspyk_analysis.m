@@ -1,8 +1,8 @@
 function [W,E] = rlspyk_analysis(d,p,lambda)
-% RLSPYK_ANALYSIS - RLS predictor in analysis configuration as implemented 
-% by Yu and Ko in "Lossless
-% Compression of Digital Audio Using Cascaded RLS-LMS Prediction," IEEE
-% Trans. Speech Audio Processing, Vol. 11, No. 6, November 2003.
+% RLSPYK_ANALYSIS - RLS predictor in analysis configuration as implemented by Yu
+% and Ko in "Lossless Compression of Digital Audio Using Cascaded RLS-LMS
+% Prediction," IEEE Trans. Speech Audio Processing, Vol. 11, No. 6, November
+% 2003.
 d = [zeros(p,1); d(:)];
 delta=0.001;
 if nargin < 3, lambda = 1.0; end;
