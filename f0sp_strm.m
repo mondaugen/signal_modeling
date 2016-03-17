@@ -87,7 +87,7 @@ do
     if (P>=0)
         [smax,sidx]=sort(s,'descend');
         s=pitches(sidx);
-        s=s(1:P);
+        s=sort(s(1:P));
     end
     switch fmt
     case 1
@@ -128,7 +128,7 @@ end
 if (P>=0)
     [smax,sidx]=sort(s,'descend');
     s=pitches(sidx);
-    s=s(1:P);
+    s=sort(s(1:P));
 end
 switch fmt
 case 1
