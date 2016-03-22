@@ -1,4 +1,5 @@
-function [S,T]=stft_ne(s,N,H,W,L,Fs=44100)
+function [S,T,F]=stft_ne(s,N,H,W,L,Fs=44100)
+% function [S,T]=stft_ne(s,N,H,W,L,Fs=44100)
 if (L > N)
     error('Window sizes greater than N not yet supported.');
 end
@@ -56,3 +57,4 @@ end
 x((N-H+1+L_end):N)=zeros(H-L_end,1);
 X=fft(x.*w)/W_0;
 S=[S X];
+F=(0:(size(S,1)-1))/N*Fs;

@@ -1,9 +1,9 @@
-N_ARGS = 14;
+N_ARGS = 12;
 args=argv();
 if (nargin != N_ARGS)
     pn=program_name();
     fprintf(stderr,...
-    ["usage: " pn " N H W L f0_low f0_high f0_delta K sgm thresh_dB Fs "...
+    ["usage: " pn " N H W L f0_low f0_high f0_delta thresh_dB Fs "...
      "F_max P format\n" ...
      "N : FFT size\n" ...
      "H : hop size\n" ...
@@ -14,8 +14,6 @@ if (nargin != N_ARGS)
      "f0_low : lowest f0 to test\n" ...
      "f0_high : highest f0 to test\n" ...
      "f0_delta : resolution of f0 in semi-tones\n" ...
-     "K : number of harmonics to test for f0 score\n" ...
-     "sgm : variance of where harmonics may lie\n" ...
      "thresh_dB: threshold in dB-power below which peaks are not considered\n" ...
      "Fs: samplerate in Hz\n" ...
      "F_max : peaks above this frequency are not considered.\n" ...
@@ -38,14 +36,15 @@ f0_delta=str2num(args{7});
 pitches=(f0_low:f0_delta:f0_high);
 f0s=440*2.^((pitches-69)/12);
 % Array of scores for each fundamental
-K=str2num(args{8});
-sgm=str2num(args{9});
-thresh_dB=str2num(args{10});
-Fs=str2num(args{11});
-F_max=str2num(args{12});
-P=str2num(args{13});
-format=args{14};
+thresh_dB=str2num(args{8});
+Fs=str2num(args{9});
+F_max=str2num(args{10});
+P=str2num(args{11});
+format=args{12};
 fmt=0;
+% see f0_score_hist for details on these parameters
+alpha=0.5;
+beta=0.5;
 switch format
 case "raw"
     fmt=1;
@@ -66,7 +65,7 @@ if (count != L/2)
     x((L/2+1+count):L)=zeros(L/2-count,1);
 end
 do
-    s=zeros(length(f0s),1);
+    s=zeros(length(pitches),1);
     [Px,ENBW]=mper(x,W,N,L);
     d=diff(Px);
     % only consider maxima greater than threshold
@@ -80,10 +79,7 @@ do
     % compute instantaneous power by dividing out equivalent noise bandwidth of
     % window
     inst_pow=sum(Px)/ENBW;
-    for n_=1:length(f0s)
-        f0=f0s(n_);
-        [s(n_)]=f0_score_puckette(f0,f,Pf,K,sgm);
-    end
+    s=f0_score_hist(pitches,f,Pf,alpha,beta);
     if (P>=0)
         [smax,sidx]=sort(s,'descend');
         s=pitches(sidx);
@@ -121,10 +117,7 @@ f=idmx/N*Fs;
 % compute instantaneous power by dividing out equivalent noise bandwidth of
 % window
 inst_pow=sum(Px)/ENBW;
-for n_=1:length(f0s)
-    f0=f0s(n_);
-    [s(n_)]=f0_score_puckette(f0,f,Pf,K,sgm);
-end
+s=f0_score_hist(pitches,f,Pf,alpha,beta);
 if (P>=0)
     [smax,sidx]=sort(s,'descend');
     s=pitches(sidx);
