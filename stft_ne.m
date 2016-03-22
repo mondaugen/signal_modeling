@@ -1,5 +1,5 @@
 function [S,T,F]=stft_ne(s,N,H,W,L,Fs=44100)
-% function [S,T]=stft_ne(s,N,H,W,L,Fs=44100)
+% function [S,T,F]=stft_ne(s,N,H,W,L,Fs=44100)
 if (L > N)
     error('Window sizes greater than N not yet supported.');
 end

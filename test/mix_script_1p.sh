@@ -37,11 +37,17 @@ outfile=${OUTDIR}/`${DATE} -Ins`_mix
 files=$(cat ${SOUNDSPATH}/single_pitch.INDEX \
     | ${SORT} -R \
     | head -n${NSNDS} | ${AWK} '{print "'${SOUNDSPATH}'/"$0}' )
-echo "Files:" >> "${outfile}.INFO"
-echo "$files" >> "${outfile}.INFO"
-echo "Pitches:" >> "${outfile}.INFO"
+#echo "Files:" >> "${outfile}.INFO"
+echo "$files" | ${AWK} 'BEGIN{s="files="}\
+        {s=s"\""$1"\","}\
+            END {print substr(s,1,length(s)-1)}' \
+        >> "${outfile}.INFO"
+#echo "Pitches:" >> "${outfile}.INFO"
 echo "${files}" | grep -o -e '[a-gA-G]\#\?[0-9][^/]' \
     | grep -o -e '[a-gA-G]\#\?[0-9]' | python ./ptable.py \
+    | ${AWK} 'BEGIN{s="pitches="}\
+        {s=s$2","}\
+            END {print substr(s,1,length(s)-1)}' \
     >> "${outfile}.INFO"
 ldur=$(sort -rn <( echo "$files" \
     | xargs -I^ sh -c \
@@ -60,5 +66,7 @@ fgrph=$(echo "$files" | gawk 'BEGIN {s="";n=0}\
         print s }')
 echo "$fgrph"
 ffmpeg $in_s -filter_complex "${fgrph}"\
-    -map "[aout]" -ac 1 -c:a pcm_s16le -f wav ${outfile}.wav
-echo "Wrote to: ${outfile}.wav"
+    -map "[aout]" -ac 1 -f f64le ${outfile}.f64le
+echo "Wrote to: ${outfile}.f64le"
+echo "Log:"
+cat ${outfile}.INFO
