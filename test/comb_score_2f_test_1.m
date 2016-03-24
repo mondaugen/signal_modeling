@@ -1,0 +1,32 @@
+clear;
+N=10;
+P=5;
+noisev=1e-5;
+f=rand(P,1);
+fs_orig=f*(1:N)+randn(P,N)*sqrt(noisev);
+fs=sort(fs_orig(:));
+K=length(fs);
+f2s=nchoosek(fs,2);
+L=size(f2s,1);
+fdiffs=zeros(L,1);
+Ss=zeros(L,1);
+for l=1:L
+    [fdiffs(l),Ss(l)]=comb_score_2f(f2s(l,1),f2s(l,2),fs,1e-3,0);
+end
+plot(fdiffs,Ss);
+[fds,fdsi]=sort(fdiffs);
+f_plt=(0:1e-4:1);
+sgm=5e-3;
+F=exp(-(f_plt(:)-fds(:)').^2/(2*sgm^2)).*log(Ss(fdsi)(:)');
+%F=(f_plt(:)-fds(:)').^2<0.00001.*Ss(fdsi)(:)';
+%F=((2*exp(-(1./fds(:)').*(f_plt(:)-fds(:)').^2).^(0.666)-cos((f_plt(:)-fds(:)')*pi./fds(:)').^2).*Ss(fdsi)(:)').*exp(-(10000^0.95)*(f_plt(:)-fds(:)').^2);
+F=sum(F,2);
+%F=log(prod(F+1,2));
+figure(1);
+fds_=fds(find(fds<=1));
+plot(f_plt,F);
+%plot_vert_lines(fds_',0,max(F)/2);
+plot_vert_lines(f,0,max(F));
+figure(2);
+stem(fds,log(Ss(fdsi)));
+plot_vert_lines(f,0,max(fds));
