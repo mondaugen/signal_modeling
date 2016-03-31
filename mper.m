@@ -13,6 +13,8 @@ function [Px,ENBW] = mper(x,win,N_fft,L)
 %       'hanning' (default)
 %       'bartlett'
 %       'blackman'
+%       or can be vector of length L, in which case it will be used as the
+%       window
 % N_fft : length of FFT to perform (default: length of x)
 % L : length of window (default: length of x)
 %     Window padded with 0s to equal N.
@@ -25,33 +27,41 @@ L_odd=mod(L,2);
 if (nargin == 1)
     win='hanning';
 end
-if (strcmp('hanning',win) == 1),
-    if L_odd == 1,
-        w=hanning(L);
-    else
-        w=[hanning(L-1); 0];
+if (ischar(win))
+    if (strcmp('hanning',win) == 1),
+        if L_odd == 1,
+            w=hanning(L);
+        else
+            w=[hanning(L-1); 0];
+        end;
+    elseif (strcmp(win,'hamming') == 1),
+        if L_odd == 1,
+            w=hamming(L);
+        else
+            w=[hamming(L-1); 0];
+        end;
+    elseif (strcmp(win,'bartlett') == 1),
+        if L_odd == 1,
+            w=bartlett(L);
+        else
+            w=[bartlett(L-1); 0];
+        end;
+    elseif (strcmp(win,'blackman') == 1),
+        if L_odd == 1,
+            w=blackman(L);
+        else
+            w=[blackman(L-1); 0];
+        end;
+    elseif (strcmp(win,'boxcar') == 1),
+        w=ones(L,1);
     end;
-elseif (strcmp(win,'hamming') == 1),
-    if L_odd == 1,
-        w=hamming(L);
+else
+    if (length(win)==L)
+        w=win(:);
     else
-        w=[hamming(L-1); 0];
-    end;
-elseif (strcmp(win,'bartlett') == 1),
-    if L_odd == 1,
-        w=bartlett(L);
-    else
-        w=[bartlett(L-1); 0];
-    end;
-elseif (strcmp(win,'blackman') == 1),
-    if L_odd == 1,
-        w=blackman(L);
-    else
-        w=[blackman(L-1); 0];
-    end;
-elseif (strcmp(win,'boxcar') == 1),
-    w=ones(L,1);
-end;
+        error('Bad window length.');
+    end
+end
 if nargin < 3,
     N_fft=N;
 end;
