@@ -21,7 +21,7 @@ P_sin=-36;
 a_sin=10^(P_sin/20);
 P_no=0;
 %x+=cos(2*pi*f*n/Fs);
-w=sum_cos_win_t(n,'blackman',N);
+w=sum_cos_win_t(n,'blackman4-min',N);
 %X=zeros(N_dft,1);
 [X,ENBW]=mper(x,w,N_dft,N);
 [Xm,Xmi]=lextrem(X,'max');
@@ -40,14 +40,13 @@ end
 %    Wc(:,k_)=mper(exp(j*2*pi*l_/N_dft*n),w,N_dft,N); %db2p(Xm_(k_))*
 %    Wc(:,k_).*=((n_dft >= (l_/N_dft*N-B)) & (n_dft <= (l_/N_dft*N+B)));
 %end
+[ex_i,Y]=ppvp(Xm_,0.15,'max',0.50,2);
 figure(1);
-plot(n_dft/N*Fs,p2db(X),(Xmi_-1)/N_dft*Fs,Xm_,'o-')
+%plot(n_dft/N*Fs,p2db(X),(Xmi_-1)/N_dft*Fs,Xm_,'o-')
+plot(n_dft/N*Fs,p2db(X),(Xmi_(ex_i)-1)/N_dft*Fs,Xm_(ex_i),'o-')
 plot_vert_lines(fs,min(p2db(X)),max(p2db(X)));
 Wc=Wc.';
 s=Wc*X./(norm(Wc,2,'rows')*norm(X,2));
 figure(2);
 plot((Xmi_-1)/N_dft*Fs,p2db(s));
 plot_vert_lines(fs,min(p2db(s)),max(p2db(s)));
-figure(3);
-x_smooth=inv_var_filt(p2db(X),2,1);
-plot(n_dft/N*Fs,x_smooth);
