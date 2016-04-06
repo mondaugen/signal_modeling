@@ -32,6 +32,10 @@ otherwise
 end
 while ((tot_va > thresh) && (N>1))
     mi_i=find(ex_states==b);
+    if (length(mi_i)==0)
+        % No more items with state b exist
+        break
+    end
     [va_ma,va_ma_i]=max(va(mi_i));
     va_ma_i=ex_i(mi_i(va_ma_i));
     ex_i=ex_i(find(ex_i != va_ma_i));

@@ -7,7 +7,8 @@ function [Px,ENBW] = mper(x,win,N_fft,L)
 % ENBW : is the equivalent noise bandwidth summed over all bins of the DFT of
 %        the window. This is useful for calculating the total power using Px, as
 %        it will have been scaled by this value.
-% x : The signal to analyse
+% x : The signal to analyse. Should be column vector. If matrix, periodogram,
+%     computed for each column vector.
 % win : can be one of
 %       'hamming'
 %       'hanning' (default)
@@ -18,8 +19,8 @@ function [Px,ENBW] = mper(x,win,N_fft,L)
 % N_fft : length of FFT to perform (default: length of x)
 % L : length of window (default: length of x)
 %     Window padded with 0s to equal N.
-x=x(:);
-N=length(x);
+%x=x(:);
+N=size(x,1);
 if (nargin < 4)
     L=N;
 end
@@ -71,5 +72,5 @@ end
 if (L < N)
     w=[w;zeros(N-L,1)];
 end
-Px=(abs(fft(x.*w,N_fft))/sum(w)).^2;
+Px=(abs(fft(x.*w,N_fft,1))/sum(w)).^2;
 ENBW=sum(w.^2)/(sum(w).^2)*N_fft;
