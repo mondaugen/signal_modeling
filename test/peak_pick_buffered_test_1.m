@@ -1,5 +1,5 @@
 % File to load in
-fname='/tmp/c.f64';
+fname='/tmp/test.f64';
 fi=fopen(fname,'r');
 x=fread(fi,Inf,'float64');
 x+=randn(length(x),1)*0.1;
@@ -25,6 +25,6 @@ for n=1:size(PX,2)
     [ex_i,Y]=ppvp(Xm_,0.1,'max',0.50,2);
     Pxm{n,1}=Xmi_(ex_i);
     Pxm{n,2}=Xm_(ex_i);
-    scatter(n*ones(length(ex_i),1),Xmi_(ex_i),5);
+    scatter(n*ones(length(ex_i),1),Xmi_(ex_i),5,'k');
 end
 hold off;
