@@ -59,6 +59,13 @@ switch wtype
         h=cos(pi*t/T).^2;
         dh=-pi/T*sin(2*pi*t/T);
         ddh=-2*(pi/T)^2*cos(2*pi*t/T);
+    case {'blackman3-min','blackman'}
+        a=[0.42323,0.49755,0.07922];
+        M=length(a);
+        m=0:(M-1);
+        h=sum((-1).^(m).*a.*cos(2*pi/T*t*m),2);
+        dh=sum((-1).^(m(2:end)+1).*(2*pi/T*m(2:end)).*a(2:end).*sin(2*pi/T*t*m(2:end)),2);
+        ddh=sum((-1).^(m(2:end)+1).*(2*pi/T*m(2:end)).^2.*a(2:end).*cos(2*pi/T*t*m(2:end)),2);
     case 'nutall3'
         h=(0.5-0.5*cos(2*pi*t/T)).^2;
         dh=pi/T*(sin(2*pi*t/T)-0.5*sin(4*pi*t/T));
