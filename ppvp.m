@@ -11,7 +11,9 @@ function [ex_i,X]=ppvp(Y,a=0.1,mode='max',c=0.5,q=2)
 %   'max' finds set of maxima
 % c is percentage of variation score that is attributed to a values total
 %   difference from the maximum, resp. minimum
-% q is exponent to favour (q<1) or disfavour (q>1) more or less distant values
+% q is exponent to which distance from highest resp. lowest value is raised if
+%   algorithm is seeking minima resp. maxima. q>1 means two distant values
+%   are more different than two close ones and q<1 means the opposite
 %
 % ex_i are indices in Y that have reached variation reduction threshold
 % X are the values of these indices
