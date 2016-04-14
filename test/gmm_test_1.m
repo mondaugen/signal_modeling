@@ -17,7 +17,8 @@ c=[ 1*ones(dat_size(1),1);
     2*ones(dat_size(1),1);
     3*ones(dat_size(1),1); ];
 % compute principle components
-S=cov(I);
+%S=cov(I);
+S=corr(I);
 [V,L]=eig(S);
 [l,li]=sort(diag(L),'descend');
 V=V(:,li);
@@ -83,7 +84,7 @@ sig2(:,:,1)=eye(2);
 sig2(:,:,2)=eye(2);
 sig2(:,:,3)=eye(2);
 W2=[1 1 1]/3;
-B=10;
+B=5;
 P_k2=zeros(size(y2,1),3);
 for b=1:B
     for _k=1:3

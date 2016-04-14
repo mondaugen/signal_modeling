@@ -1,4 +1,4 @@
-function [Pxm,PX,ENBW_PX]=compute_all_metrics(opt)
+function [Pxm,PX,ENBW_PX,opt]=compute_all_metrics(opt)
 % [Pxm]=compute_all_metrics(fname,opt)
 %
 % Load in file of float64 and compute a set of metrics on each frame.
@@ -65,7 +65,8 @@ Pxm=cell();
 for n=1:opt.K
     % Struct to store values
     st=struct();
-    Xn=PX(:,n);
+    % Only use half the spectrum due to redundancy
+    Xn=PX(1:(end/2),n);
     % Find extrema in power spectrum
     [st.Xm,st.Xmi]=lextrem(Xn,'max');
     % Interpolate to obtain better values 
@@ -79,6 +80,13 @@ for n=1:opt.K
     st.fm_=(st.Xmi_(st.ex_i)-1)/length(Xn)*opt.Fs;
     % Compute reassigned parameters
     [st.X_r,st.w_r,st.psi_r,st.mu_r,st.t_r,st.X_r_]=rm(X(:,n),opt.rm_win);
+    % Only use half the spectrum
+    st.X_r=st.X_r(1:(end/2));
+    st.w_r=st.w_r(1:(end/2));
+    st.psi_r=st.psi_r(1:(end/2));
+    st.mu_r=st.mu_r(1:(end/2));
+    st.t_r=st.t_r(1:(end/2));
+    st.X_r_=st.X_r_(1:(end/2));
     % RM computes power spectrum differently so we compute its maxima
     % Find extrema in spectrum, make power spectrum
     [st.X_r_m,st.X_r_mi]=lextrem(abs(st.X_r).^2,'max');
