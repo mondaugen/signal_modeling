@@ -13,6 +13,8 @@ otherwise
     error(sprintf('Bad mode %s\n',mode));
 end
 [V,L]=eig(S);
+% Sort eigenvalues
 [l,li]=sort(diag(L),'descend');
-V(:,li);
+% Sort eigenvectors accordingly
+V=V(:,li);
 A=X*V;

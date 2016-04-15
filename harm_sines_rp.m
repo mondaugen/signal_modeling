@@ -20,7 +20,7 @@ sp.phi=0;
 % Initial FM phase
 sp.phi_fm=0;
 % Amplitude coefficient of FM
-sp.A_fm=sp.f0*2^(2/12)-sp.f0;
+sp.A_fm=sp.f0*2^(0.5/12)-sp.f0;
 % Frequency coefficient of FM
 sp.f_fm=2;
 % Time in seconds until amplitude of partial has dropped by 60dB
@@ -33,6 +33,16 @@ sp.A_method='FOF';
 sp.L=1024;
 % Theoretical hop size
 sp.H=256;
+% For the noise amounts, this value can be interpreted as: 60% of the time, the
+% value will be within this percentage of its true value, where 0.01 is 1% etc.
+% frequency noise variance
+sp.w_no=0;
+% frequency slope noise variance
+sp.psi_no=0;
+% amplitude noise variance
+sp.A_no=0;
+% amplitude slope noise variance
+sp.mu_no=0;
 
 % Check what fields are present and replace with defaults
 for fn=fieldnames(sp)'
@@ -53,7 +63,7 @@ a_k_60=log(10^(-3))/log(10)/opt.A_k_60;
 % we store only one half of cosine in spectrum (not its conjugate phasor)
 opt.A_k=exp(a_k_60*k)*0.5;
 % amplitude coefficient
-a_60=log(10^(-3))/log(10)/opt.T_60;
+opt.a_60=log(10^(-3))/log(10)/opt.T_60;
 % sample indices
 n=(0:opt.H:(opt.N-1));
 n=n(:);
@@ -70,28 +80,34 @@ for t_=t'
                n_=[-opt.L/2:opt.L/2]';
                t__=t_+n_/opt.Fs;
                t__=t__(:);
-               s_=exp(a_60*t__)*opt.A_k.*cos(t__/opt.T_max*pi/2-pi/2).^2;
+               s_=exp(opt.a_60*t__)*opt.A_k.*cos(t__/opt.T_max*pi/2-pi/2).^2;
                % mu (AM) parameters are in row 2, log of initial amplitude in row 1
                % The regressors (?) are with repect to sample numbers rather than
                % time because this is how the parameters are computed by RM
                th=ols(log(s_),[ones(length(t__),1),n_]);
                rp.mu_r=th(2,:)';
-               rp.X_r_=exp(th(1,:)');
+               % Add noise
+               rp.mu_r.*=1+randn(length(rp.mu_r),1)*opt.mu_no;
+               rp.X_r_=exp(th(1,:)').*(1+randn(length(th(1,:)),1)*opt.A_no);
            else
-               % Divided by Fs because a_60 is w.r.t. the time in seconds not the
+               % Divided by Fs because opt.a_60 is w.r.t. the time in seconds not the
                % sample number
-               rp.mu_r=ones(opt.K,1)*a_60/opt.Fs;
+               rp.mu_r=ones(opt.K,1)*opt.a_60/opt.Fs;
+               rp.mu_r.*=1+randn(opt.K,1)*opt.mu_no;
+               % Add noise
                % The value where the AM parameter is multiplied by 0 is at the
                % centre of the window, which is then just the amplitude as if there
                % were no AM
-               rp.X_r_=exp(a_60*t_)*opt.A_k';
+               rp.X_r_=exp(opt.a_60*t_)*(opt.A_k'.*(1+randn(opt.K,1)*opt.A_no));
            end
     otherwise
         error(sprintf('Bad A_method %s\n',opt.A_method));
     end
     % Reassigned frequency parameters
-    rp.w_r=(2*pi*opt.f0+opt.A_fm*sin(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B'/opt.Fs;
+    rp.w_r=2*pi*(opt.f0+opt.A_fm*sin(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B'/opt.Fs;
+    rp.w_r.*=1+randn(opt.K,1)*opt.w_no;
     rp.psi_r=(2*pi)^2*opt.A_fm*opt.f_fm*cos(2*pi*opt.f_fm*t_+opt.phi_fm)*opt.k_B'/(opt.Fs^2);
+    rp.psi_r.*=1+randn(opt.K,1)*opt.psi_no;
     % Initial phase
     rp.phi_r=opt.phi+2*pi*(opt.f0*t_-opt.A_fm/(2*pi*opt.f_fm)*cos(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B';
     rp.X_r_.*=exp(j*rp.phi_r);
