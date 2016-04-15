@@ -1,6 +1,11 @@
 % Compute theoretical values with harm_sines_rp and then plot the frequency
 % modulation / frequency and amplitude modulation / amplitude
+% Here we undertake the additional step of trying to separate them using GMM
 clear;
+% Colours for plotting different categories
+clrs={"blue", "black", "cyan", "green", "magenta", "red","yellow"};
+% Number of iterations of GMM algorithm
+B_gmm=50;
 N_pxm=2;
 Pxm=cell(N_pxm);
 [Pxm{1},opt]=harm_sines_rp(struct(
@@ -12,7 +17,7 @@ Pxm=cell(N_pxm);
     'T_60',0.5,
     'mu_no',0.1,
     'f_fm',3,
-    'psi_no',0.1));
+    'psi_no',0.2));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
@@ -20,7 +25,7 @@ Pxm=cell(N_pxm);
     'f0',440*2^((61-69)/12),
     'w_no',0.1,
     'T_60',0.75,
-    'mu_no',0.1,
+    'mu_no',0.2,
     'phi_fm',.8,
     'f_fm',2,
     'psi_no',0.1));
@@ -54,49 +59,34 @@ for n=1:length(Pxm{1})
     end
     % First PC of these as realizations of 2-dimensional random variable
     [A_pca{n},l_pca]=pca_ne(X,'corr');
-    h=scatter(f3,m*ones(length(A_pca{n}(:,1)),1),A_pca{n}(:,1),[],'k');
-    set(h,'linewidth',1);
-    % First guess for means
-    [m0]=hist_sect(A_pca{n}(:,1),N_pxm);
+    % First guess for means and standard deviations
+    s0=zeros(1,1,N_pxm);
+    [m0,s0(1,1,:)]=hist_sect(A_pca{n}(:,1),N_pxm);
+    % First guess for weights
+    w0=ones(N_pxm,1)/N_pxm;
+    [C_,P_,mu_,S_,W_]=gmm(A_pca{n}(:,1),m0,s0*0.001,w0,B_gmm);
+    for c=1:N_pxm
+        ci_=find(C_==c);
+        h=scatter(f3,m*ones(length(A_pca{n}(ci_,1)),1),A_pca{n}(ci_,1),[],clrs{c});
+        set(h,'linewidth',1);
+    end
+    % plot first guess for means
     h=scatter(f3,m*ones(length(m0),1),m0,[],'g');
     set(h,'linewidth',1);
-    % Second PC of these as realizations of 2-dimensional random variable
-    h=scatter(f4,m*ones(length(A_pca{n}(:,2)),1),A_pca{n}(:,2),[],'k');
-    set(h,'linewidth',1);
-    % First guess for means
-    [m0]=hist_sect(A_pca{n}(:,2),N_pxm);
-    h=scatter(f4,m*ones(length(m0),1),m0,[],'g');
-    set(h,'linewidth',1);
+    %% First guess for means and standard deviations
+    %[m0,s0(1,1,:)]=hist_sect(A_pca{n}(:,2),N_pxm);
+    %% First guess for weights
+    %w0=ones(N_pxm,1)/N_pxm;
+    %[C_,P_,mu_,S_,W_]=gmm(A_pca{n}(:,1),m0,s0,w0,B_gmm);
+    %for c=1:N_pxm
+    %    ci_=find(C_==c);
+    %    h=scatter(f4,m*ones(length(A_pca{n}(ci_,2)),1),A_pca{n}(ci_,2),[],clrs{c});
+    %    set(h,'linewidth',1);
+    %end
+    %% plot first guess for means
+    %h=scatter(f4,m*ones(length(m0),1),m0,[],'g');
+    %set(h,'linewidth',1);
 end
-%for n=1:length(Pxm2)
-%    sp=Pxm2{n};
-%    m=(n-1)*opt.H;
-%    figure(1);
-%    h=scatter(m*ones(length(sp.w_r),1),sp.psi_r./sp.w_r,[],'k');
-%    set(h,'linewidth',1);
-%    n0=-opt.H/2;
-%    n1=opt.H/2;
-%    w0=sp.psi_r*n0;
-%    w1=sp.psi_r*n1;
-%%    plot([-0.5,0.5]*opt.H+m,[w0,w1]+sp.w_r,'k');
-%    figure(2);
-%%    h=scatter(m*ones(length(sp.mu_r),1),sp.mu_r./log(abs(sp.X_r_)),[],'k');
-%    h=scatter(m*ones(length(sp.mu_r),1),sp.mu_r,[],'k');
-%    set(h,'linewidth',1);
-%    a0=sp.mu_r*n0;
-%    a1=sp.mu_r*n1;
-%%    plot([-0.5,0.5]*opt.H+m,[a0,a1]+log(abs(sp.X_r_)),'k');
-%end
-%M=opt.H*length(Pxm);
-%m=(0:(M-1));
-%t_=m/opt.Fs;
-%t_=t_(:);
-%w_r=2*pi*(opt.f0+opt.A_fm*sin(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B/opt.Fs;
-%figure(1);
-%plot(m,w_r,'--');
-%a_r=log(exp(opt.a_60*t_)*opt.A_k.*(cos(t_/opt.T_max*pi/2-pi/2).^2.*(t_<=opt.T_max)+(t_>opt.T_max)));
-%figure(2);
-%plot(m,a_r,'--');
 hold(f1,'off');
 hold(f2,'off');
 hold(f3,'off');

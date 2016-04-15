@@ -1,4 +1,5 @@
 % Compute theoretical values with harm_sines_rp and then plot them
+clear;
 [Pxm,opt]=harm_sines_rp(struct('T',2,'H',256));
 newplot(figure(1));
 newplot(figure(2));

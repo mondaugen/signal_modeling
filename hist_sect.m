@@ -1,17 +1,22 @@
-% Find the P centres of parts of equal area of a histogram.
-clear;
-P=2;
-A_mi=0.9;
-A_ma=15;
-N=100;
-%A=unifrnd(A_mi,A_ma,N,1);
-A=A_mi+randn(N,1);
-A=[A;A_ma+randn(N,1)];
+function [c,d,b_avg]=hist_sect(A,P,B=10);
+% [c]=hist_sect(A,P,B=10);
+% Using data A, find P centres of P regions of equal area of the histogram of A.
+% There is a difference if the area is accumulated from the beginning of the
+% array or the end. For this reason, the accumulation of both directions is
+% computed, the centres of these regions are found and then the centres are
+% averaged.
+%
+% A : The data with which to compute the histogram
+% P : The number of centres pursued.
+% B : The number of bins of the histogram, default 10.
+%
+% c : The centres
+% d : The distance of each centre from its closest boundary. This number is
+%     always positive.
+% b : The boundaries.
 % extreme bin boundaries
 bb_s=min(A);
 bb_e=max(A);
-% number of bins
-B=10;
 % bin boundaries
 bbs=(bb_e-bb_s)*(0:B)/B+bb_s;
 % bin centres
@@ -53,13 +58,8 @@ b_2=[bbs2(1);b_2];
 b_m2=b_2(1:(end-1))+diff(b_2)/2;
 % compute average centres
 b_m_avg=(b_m+flipud(b_m2))/2;
-newplot(figure(1));
-hold on
-bar(xx,nn);
-plot(bbs,ones(length(bbs),1),'or',bcs,ones(length(bcs),1),'ob');
-stem(b_(:),max(nn)*ones(length(b_),1),'color','k');
-stem(b_m(:),max(nn)*ones(length(b_m),1),'color','r');
-stem(b_2(:),max(nn)*ones(length(b_2),1),'color','cyan','marker','x');
-stem(b_m2(:),max(nn)*ones(length(b_m2),1),'color','magenta','marker','x');
-stem(b_m_avg(:),max(nn)*ones(length(b_m_avg),1),'color','blue','marker','+');
-hold off;
+c=b_m_avg;
+% compute average boundaries
+b_avg=(b_+flipud(b_2))/2;
+d=min(abs(c-b_avg'),[],2);
+b=b_avg;
