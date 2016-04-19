@@ -1,4 +1,4 @@
-function [c,d,b_avg]=hist_sect(A,P,B=10);
+function [c,d,b_avg,P_modes]=hist_sect(A,P,B=10);
 % [c]=hist_sect(A,P,B=10);
 % Using data A, find P centres of P regions of equal area of the histogram of A.
 % There is a difference if the area is accumulated from the beginning of the
@@ -7,13 +7,14 @@ function [c,d,b_avg]=hist_sect(A,P,B=10);
 % averaged.
 %
 % A : The data with which to compute the histogram
-% P : The number of centres pursued.
+% P : The number of centres pursued. Should be less than B.
 % B : The number of bins of the histogram, default 10.
 %
 % c : The centres
 % d : The distance of each centre from its closest boundary. This number is
 %     always positive.
 % b : The boundaries.
+% P_modes : Also returns the coordinates of local maxima (the modes).
 % extreme bin boundaries
 bb_s=min(A);
 bb_e=max(A);
@@ -23,6 +24,9 @@ bbs=(bb_e-bb_s)*(0:B)/B+bb_s;
 bcs=(bb_e-bb_s)*((0:(B-1))+0.5)/B+bb_s;
 % gather data into bins
 [nn,xx]=hist(A,bcs);
+[nns,nnsi]=sort(nn,'descend');
+P_modes=xx(nnsi(1:P));
+P_modes=P_modes(:);
 % cumulate over bins
 cs=[0,cumsum(nn)];
 cs/=cs(end);

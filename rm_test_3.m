@@ -16,11 +16,14 @@ for n=1:size(a,2)
     n_max=idmx;
     t_max=t(idmx,n);
     psi_max=psi(idmx,n);
-    t0=-H/2*ones(length(idmx),1);
-    t1=H/2*ones(length(idmx),1);
+    %t0=-H/2*ones(length(idmx),1);
+    %t1=H/2*ones(length(idmx),1);
+    t0=-8*ones(length(idmx),1);
+    t1=8*ones(length(idmx),1);
     w0=w_max+psi_max.*t0;
     w1=w_max+psi_max.*t1;
-    scatter((n-1)*ones(length(idmx),1)*H+t_max,w_max/(2*pi)*Fs,[],idmx);
+    h=scatter((n-1)*ones(length(idmx),1)*H+t_max,w_max/(2*pi)*Fs,[],idmx);
+    set(h,'linewidth',1);
     plot(([t0+t_max,t1+t_max]+(n-1)*ones(length(idmx),2)*H)',[w0,w1]'/(2*pi)*Fs);
 end
 hold off;

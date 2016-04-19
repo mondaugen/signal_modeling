@@ -22,9 +22,13 @@ N=size(X,2);
 P=zeros(size(X,1),K);
 for b=1:B
     for k=1:K
-        
+        % In the case the inverse of the variance is Inf, we do not want
+        % argument to equal 0 or the function becomes undefined.
+        X_mu=X-mu(k,:);
+        % Add offset to values equal to 0.
+        X_mu(find(X_mu==0))=1e-10;
         P(:,k)=W(k)*((2*pi)^N*det(S(:,:,k)))^(-0.5)...
-            *exp(-0.5*sum((X-mu(k,:))'.*(inv(S(:,:,k))*(X-mu(k,:))'),1)');
+            *exp(-0.5*sum(X_mu'.*(inv(S(:,:,k))*X_mu'),1)');
     end
     P=P./sum(P,2);
     W=sum(P,1)/size(P,1);
