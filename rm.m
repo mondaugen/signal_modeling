@@ -6,10 +6,12 @@ function [X,w_,psi_,mu_,t_,X_] = rm(x,wtype='hanning')
 % modulation are estimated.
 %
 % Input arguments:
-% x:     a signal of length N. floor(N/2)+1 is the index of x corresponding to time
-%        0 (indexing starts at 1).
+% x:     A matrix of size NxM which represents M signals of length N
+%        floor(N/2)+1 is the index of x corresponding to time 0 (indexing starts
+%        at 1).
 % wtype: the window type. Supported types:
 %        'hanning'
+%        'blackman'
 % 
 % Output arguments:
 % X:    the original spectrum, divided by sum of window
@@ -24,19 +26,18 @@ function [X,w_,psi_,mu_,t_,X_] = rm(x,wtype='hanning')
 % each of the form:
 % s(t) = h(t)*a_*exp(mu_*t+j(phi_+w_*t+psi_/2*t^2))
 % where the parameters are from above and a_ and phi_ are computed from X_.
-x=x(:);
-N=length(x);
+N=size(x,1);
 n_mid=floor(N/2);
 t=(1:N)-n_mid-1;
 [h,dh,ddh]=rm_h(t,wtype);
 ht=h.*t';
 dht=dh.*t';
-Xht=fft(x.*ht);
-Xh=fft(x.*h);
+Xht=fft(x.*ht,N,1);
+Xh=fft(x.*h,N,1);
 X=Xh/sum(h);
-Xdh=fft(x.*dh);
-Xdht=fft(x.*dht);
-Xddh=fft(x.*ddh);
+Xdh=fft(x.*dh,N,1);
+Xdht=fft(x.*dht,N,1);
+Xddh=fft(x.*ddh,N,1);
 w=2*pi*(0:(N-1))/N;
 w=w(:);
 Xdh_Xh=Xdh./Xh;
@@ -47,8 +48,8 @@ dt_=real(Xdh.*Xht./(Xh.^2))-real(Xdht./Xh);
 psi_=dw_./dt_;
 mu_=-real(Xdh_Xh);
 dw=-imag(Xdh_Xh);
-gam=exp(mu_*t+j*(dw_*t+0.5*psi_*t.^2))*h;
-X_=Xh./gam;
+gam=exp(mu_.*t'+j*(dw_.*t'+0.5*psi_.*(t.^2)')).*h;
+X_=Xh./fft(gam,N,1);
 
 function [h,dh,ddh]=rm_h(t,wtype)
 % Computes window and window derivatives. Assumes dt=1.
