@@ -43,7 +43,7 @@ mu_no_rng=[-1e-3 1e-3];
 % Number of histogram bins
 N_b=40;
 % Histrogram bin count threshold
-H_th=10;
+H_th=7;
 f1=newplot(figure(1));
 set(f1,'visible','off');
 f2=newplot(figure(2));
