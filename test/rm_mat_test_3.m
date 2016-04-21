@@ -10,12 +10,16 @@ P=2;
 t=(0:(L-1));
 X=buffer_ne(x,N,H);
 [Y,w_,psi_,mu_,t_,Y_]=rm(X,'blackman');
-w_plt=w_(:);
-t_plt=ones(N,1)*((1:size(Y,2))-1);
-t_plt=t_plt(:);
-i_plt=find(abs(Y(:))>1e-2);
+Y_plt=cell();
 newplot(figure(1));
-h=scatter(t_plt(i_plt),w_plt(i_plt),[],abs(Y(i_plt)(:)));
-set(h,'linewidth',1);
-newplot(figure(2));
-imagesc(log(abs(Y)));
+hold on;
+for n=1:size(Y,2)
+    S=Y(:,n);
+    [lmx,lmxi]=lextrem(abs(S(1:end/2)));
+    [ma_i]=lmaxw(lmx,16,1);
+    Y_plt{n,1}=lmxi(ma_i);
+    Y_plt{n,2}=lmx(ma_i);
+    scatter(n*ones(length(ma_i),1),w_(lmxi(ma_i)),[],lmx(ma_i));
+end
+hold off;
+
