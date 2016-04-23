@@ -2,6 +2,7 @@ from itertools import product
 import matplotlib.pyplot as plt
 from numpy import linalg, array
 from cvxopt import matrix, spmatrix
+import numpy as np
 # Nodes in graph
 N_nodes=15
 nodes=[
@@ -33,6 +34,16 @@ for b in adjn:
         y=array(nodes[j-1])
         C[N_nodes*(i-1)+(j-1)]=linalg.norm(x-y)
         plt.plot([x[0],y[0]],[x[1],y[1]],'k')
-a_plt=array(nodes)
-plt.scatter(a_plt[:,0],a_plt[:,1])
-plt.show()
+#a_plt=array(nodes)
+#plt.scatter(a_plt[:,0],a_plt[:,1])
+#plt.show()
+
+# Put constraints on number of entering
+E=dict()
+e=dict()
+for a=[12,13,14,15]:
+    _m=matrix(float('inf'),(N_nodes*N_nodes,1))
+    _idx=N_nodes*a+np.arange(N_nodes)
+    _m[_idx]=1
+    E[a]=_m
+    e[a]=1
