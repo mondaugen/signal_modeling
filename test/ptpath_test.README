@@ -1,0 +1,13 @@
+# Example invokations from the signal_modeling directory
+
+PYTHONPATH=$PWD:$PWD/test python -i -c 'import ptpath, ptpath_test
+d=ptpath_test.test_1()
+e=ptpath_test.ranks_test_1(d)
+sol=ptpath_test.sol_test_1(d)
+ptpath_test.plot_test_1(sol)'
+
+PYTHONPATH=$PWD:$PWD/test python -i -c 'import ptpath, ptpath_test
+g=ptpath_test.rand_graph_1(10,20,12)
+d=ptpath.g_f_2lp(g["S"],g["F"],10)
+sol=ptpath_test.sol_test_1(d)
+ptpath_test.plot_test(sol,g["S"])'

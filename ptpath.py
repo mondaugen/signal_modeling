@@ -38,35 +38,47 @@ def g_f_2lp(S,F,J,cost_func=LPNode_euclidean_dist):
     """
     N_nodes=len(S)
     c=cvx.matrix(float('inf'),(N_nodes,N_nodes))
+    cmax=float('-inf')
     for i in S.keys():
         for j in S[i].out_nodes:
-            c[i,j]=cost_func(S[i],S[j])
+            cst=cost_func(S[i],S[j])
+            if cst > cmax:
+                cmax=cst
+            c[i,j]=cst
+    rs,cs=c.size
+    for r_ in xrange(rs):
+        for c_ in xrange(cs):
+            if (c[r_,c_]==float('inf')) or (c[r_,c_]==float('-inf')):
+                c[r_,c_]=cmax+1
+
     c.size=(N_nodes*N_nodes,1)
     A_=list()
     b_=list()
     G_=list()
     h_=list()
-    for f in F:
-        a1_=cvx.sparse((N_nodes,N_nodes))
-        a2_=cvx.sparse((N_nodes,N_nodes))
+    for f in F[:-1]:
+        a1_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+#        a2_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
         for i in f:
             # restrict number of edges leaving S[i]
-            for j in S[i].out_nodes:
-                a1_[i,j]=1
+            a1_[i,:]=1
+            a1_[i,i]=0
+#            for j in S[i].out_nodes:
+#                a1_[i,j]=1
             # restrict number of edges entering S[i]
-            for j in S[i].in_nodes:
-                a2_[j,i]=1
-        A_.append(a_)
-        A_.append(a2_)
+#            for j in S[i].in_nodes:
+#                a2_[j,i]=1
+        A_.append(a1_)
+#        A_.append(a2_)
         # restrict this to the number of paths
         b_.append(J)
-        b_.append(J)
+#        b_.append(J)
 
     for k in xrange(1,len(F)-1):
         # For each node in the inner frames, the number of edges entering a node
         # must equal the number of edges exiting the same node
         for i in F[k]:
-            a_=cvx.sparse((N_nodes,N_nodes))
+            a_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
             for j in S[i].in_nodes:
                 a_[j,i]=1
             for j in S[i].out_nodes:
@@ -75,53 +87,66 @@ def g_f_2lp(S,F,J,cost_func=LPNode_euclidean_dist):
             # this must sum to 0
             b_.append(0)
 
-    for f in F:
-        if len(f) >= J:
+    for k in xrange(len(F)):
+        if len(F[k]) >= J:
             # if number of nodes in frame is >= to the number of paths, each
             # node can have a maximum of 1 edge entering and 1 edge leaving
-            for i in f:
-                g1_=cvx.sparse((N_nodes,N_nodes))
-                g2_=cvx.sparse((N_nodes,N_nodes))
-                # restrict number of edges leaving S[i]
-                for j in S[i].out_nodes:
-                    g1_[i,j]=1
-                # restrict number of edges entering S[i]
-                for j in S[i].in_nodes:
-                    g2_[j,i]=1
-                G_.append(g1_)
-                G_.append(g2_)
-                # restrict this to the number of paths
-                h_.append(1)
-                h_.append(1)
+            for i in F[k]:
+                if (k != (len(F)-1)):
+                    # (in last frame, there can be no edges leaving)
+                    g1_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+                    # restrict number of edges leaving S[i]
+                    for j in S[i].out_nodes:
+                        g1_[i,j]=1
+                    G_.append(g1_)
+                    # restrict this to the number of paths
+                    h_.append(1)
+                if (k != 0):
+                    # (in first frame, there can be no edges entering)
+                    g2_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+                    # restrict number of edges entering S[i]
+                    for j in S[i].in_nodes:
+                        g2_[j,i]=1
+                    G_.append(g2_)
+                    # restrict this to the number of paths
+                    h_.append(1)
+
     # allocate equality constraint matrix
-    A=cvx.spmatrix([],[],[],(len(A_),N_nodes*N_nodes))
+    A=cvx.spmatrix([],[],[],(len(A_),N_nodes*N_nodes),'d')
     # fill with values
     for i in xrange(len(A_)):
         # flatten matrix
         A_[i].size=(N_nodes*N_nodes,1)
         # store transpose (see LP definition)
         A[i,:]=A_[i].T
+        # Unflatten
+        A_[i].size=(N_nodes,N_nodes)
     # make equality contstraint vector
-    b=cvx.matrix(b_)
+    b=cvx.matrix(b_,tc='d')
 
     # allocate inequality constraint matrix, including space for the constraints
     # on the variable (min 0, max 1)
-    G=cvx.spmatrix([],[],[],(len(G_)+2*N_nodes*N_nodes,N_nodes*N_nodes))
-    for i in xrange(length(G_)):
+    G=cvx.spmatrix([],[],[],(len(G_)+2*N_nodes*N_nodes,N_nodes*N_nodes),'d')
+    for i in xrange(len(G_)):
         G_[i].size=(N_nodes*N_nodes,1)
         G[i,:]=G_[i].T
+        G_[i].size=(N_nodes,N_nodes)
     for n in xrange(N_nodes*N_nodes):
-        G[length(G_)+n,n]=1
+        G[len(G_)+n,n]=1
         h_.append(1)
     for n in xrange(N_nodes*N_nodes):
-        G[length(G_)+N_Nodes*N_nodes+n,n]=-1
+        G[len(G_)+N_nodes*N_nodes+n,n]=-1
         h_.append(0)
-    h=cvx.matrix(h_)
+    h=cvx.matrix(h_,tc='d')
 
     d=dict()
     d['c']=c
     d['A']=A
+    d['A_']=A_
     d['b']=b
+    d['b_']=b_
     d['G']=G
+    d['G_']=G_
     d['h']=h
+    d['h_']=h_
     return d
