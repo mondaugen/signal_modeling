@@ -11,3 +11,10 @@ g=ptpath_test.rand_graph_1(10,20,12)
 d=ptpath.g_f_2lp(g["S"],g["F"],10)
 sol=ptpath_test.sol_test_1(d)
 ptpath_test.plot_test(sol,g["S"])'
+
+# Invocation for testing min deviation from mean
+PYTHONPATH=$PWD:$PWD/test python -i -c 'import ptpath, ptpath_test
+g=ptpath_test.rand_graph_1(10,10,10)
+d=ptpath.g_f_2lp(g["S"],g["F"],3)
+sol=ptpath_test.sol_test_mean_1(d,g["S"],g["F"])
+ptpath_test.plot_test_mean(sol,g["S"],g["F"])'

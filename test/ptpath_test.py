@@ -64,6 +64,11 @@ def rand_graph_1(min_Fk,max_Fk,K):
 def sol_test_1(d):
     return solvers.lp(d['c'],d['G'],d['h'],d['A'],d['b'])
 
+def sol_test_mean_1(d,S,F):
+    c=d['c']
+    c[-len(F):]=1
+    return solvers.lp(c,d['G'],d['h'],d['A'],d['b'])
+
 def ranks_test_1(d):
     e=dict()
     e['A']=np.reshape(np.array(list(cvx.matrix(d['A']))),d['A'].size)
@@ -77,7 +82,7 @@ def ranks_test_1(d):
 def plot_test(sol,S):
     for k in S.keys():
         plt.scatter(S[k].frame_num,S[k].value,c='k')
-    x_=sol['x']
+    x_=sol['x'][:(len(S)*len(S))]
     x_.size=(len(S),len(S))
     r,c=x_.size
     for r_ in xrange(r):
@@ -100,3 +105,17 @@ def plot_test_1(sol):
                          np.array([S_test1[r_].value,S_test1[c_].value,]),'k')
     plt.show()
     
+def plot_test_mean(sol,S,F):
+    N_frames=len(F)
+    for k in S.keys():
+        plt.scatter(S[k].frame_num,S[k].value,c='k')
+        plt.scatter(S[k].frame_num,sol['x'][(-N_frames+S[k].frame_num)],c='r',linewidths=[0])
+    x_=sol['x'][:(len(S)*len(S))]
+    x_.size=(len(S),len(S))
+    r,c=x_.size
+    for r_ in xrange(r):
+        for c_ in xrange(c):
+            if x_[r_,c_] > 0.5:
+                plt.plot(np.array([S[r_].frame_num,S[c_].frame_num,]),
+                         np.array([S[r_].value,S[c_].value,]),'k')
+    plt.show()
