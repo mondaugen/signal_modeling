@@ -29,6 +29,7 @@ def g_f_2lp(S,
             S:  The set of nodes describing the graph.
             F:  A list containing tuples of node numbers representing the nodes
                 in each frame.
+            J:  Number of paths
             cost_func(S_i,S_j):
                 A function accepting two nodes returning a value representing
                 their distance, or some other cost of connecting them.
