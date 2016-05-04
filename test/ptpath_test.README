@@ -18,3 +18,15 @@ g=ptpath_test.rand_graph_1(10,10,10)
 d=ptpath.g_f_2lp(g["S"],g["F"],3)
 sol=ptpath_test.sol_test_mean_1(d,g["S"],g["F"])
 ptpath_test.plot_test_mean(sol,g["S"],g["F"])'
+
+# Invocation for importing data from MATLAB/Octave
+PYTHONPATH=$PWD:$PWD/test ipython -i -c 'import ptpath, ptpath_test
+(S,F,opt,trues)=ptpath_test.load_grph_harm_sines_rp("/tmp/hsrp_20160503T205426560.mat")
+S_=reduce(lambda x,y: x+y,S)
+F_=reduce(lambda x,y: x+y,F)
+D=dict()
+for s,f in zip(S_,F_):
+    D[f]=s
+d=ptpath.g_f_2lp(D,F,10,ptpath_test.LPNode_rp_dist,{"calc_mean":0,"min_mean_dev":0})
+sol=ptpath_test.sol_test_1(d)
+ptpath_test.plot_lp_hsrp(sol,D,trues)'

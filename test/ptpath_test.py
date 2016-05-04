@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import random
 import math
 from math import sqrt, cos, sin, pi
+import scipy.io as sio
 
 S_test1={
         0: LPNode(0.12,[]     ,[2,3,4],0),
@@ -232,3 +233,125 @@ def test_fm_1(grph,L_J):
 def test_fm_2(grph,L_J):
     d=g_f_2lp(grph['S'],grph['F'],L_J,opt={'calc_mean':0,'min_mean_dev':0})
     return d
+
+def load_grph_harm_sines_rp(fpath):
+    """
+    Load data from fpath representing nodes in the graph but with more
+    information to allow for more sophisticated cost functions. In particular,
+    the data in the first column of the cell array are the grouping parameters
+    (frequency modulation / frequency and amplitude modulation) and the data in
+    the second column are matrices whose rows are the values in this order:
+        [w,psi,abs(X),arg(X),mu]
+    (see rm.m for a description)
+    The data in the third column of the array are structures indicating the
+    synthesis parameters. From here we are interested in the hop size so we know
+    how separate different nodes are in time.
+    This information is parsed and a graph is created which can then be passed
+    to g_f_2lp along with a suitable cost calculation function to create a
+    linear program to resolve trajectories in the graph. Note: before passing S
+    to g_f_2lp you must reduce it to a dictionary indicating the node numbers
+    rather than a list of lists by doing
+    
+        S_=reduce(lambda x,y: x+y,S)
+        F_=reduce(lambda x,y: x+y,F)
+        D=dict()
+        for s,f in zip(S_,F_):
+            D[f]=s
+
+
+    Returns the tuple (S,F) where
+        S: is the set of nodes describing the graph
+        F: a list of tuples of node numbers describing the nodes numbers in each
+           frame.
+        opt: the contents of the 3rd column of the cell array. It can be used to
+             synthesize the true parameters.
+        trues: list of dictionaries containing the true values (not associated
+               with any nodes though)
+    """
+    mat_contents=sio.loadmat(fpath)
+    c=mat_contents['out']
+    last_nodes=[]
+    S=[]
+    F=[]
+    rows=c.shape[0]
+    node_n=0
+    H=float(c[0,2]['H'])
+    opt=c[:,2]
+    # time in samples
+    t_samp=0
+    trues=[]
+    for r in xrange(rows):
+        new_nodes=[]
+        # combine first and second column matricies
+        _rows=c[r,0].shape[0]
+        S.append(list())
+        for _r in xrange(_rows):
+            M=np.hstack((c[r,0][_r,:],c[r,1][_r,:]))
+            d={
+                'psi_w' : M[0],
+                'mu'    : M[1],
+                'w'     : M[2],
+                'psi'   : M[3],
+                'a'     : M[4],
+                'phi'   : M[5],
+                't_samp': t_samp
+            }
+            s=LPNode(d,last_nodes,[],r)
+            new_nodes.append(node_n)
+            node_n+=1
+            S[r].append(s)
+        F.append(new_nodes)
+        if (r>0):
+            for _n in xrange(len(S[r-1])):
+                S[r-1][_n].out_nodes=new_nodes
+        last_nodes=new_nodes
+        # now load in "true" values
+        _rows=c[r,3].shape[0]
+        for _r in xrange(_rows):
+            M=c[r,3][_r,:]
+            d={
+                'mu'    : M[4],
+                'w'     : M[0],
+                'psi'   : M[1],
+                'a'     : M[2],
+                'phi'   : M[3],
+                't_samp': t_samp
+            }
+            trues.append(d)
+        t_samp+=H
+    return (S,F,opt,trues)
+
+def LPNode_rp_dist(a,b):
+    """
+    Calculates distance from a to b by extrapolating the w parameter of a using
+    psi and comparing it to b's w parameter.
+    """
+    t1=b.value['t_samp'] - a.value['t_samp']
+    if (t1 > 1000):
+        t1=1000
+    if (t1 < -1000):
+        t1=-1000
+    wb_=a.value['w']+a.value['psi']*t1
+    # add 1 because we were have singularity issues with small values and all
+    # values are positive so it shouldn't make a difference
+    return (b.value['w'] - wb_) ** 2. + 1
+    #return (b.value['mu'] - a.value['mu']) ** -2.
+    #return (b.value['w'] - a.value['w']) ** 2.
+
+def plot_lp_hsrp(sol,S,trues):
+    for k in S.keys():
+        plt.scatter(S[k].value['t_samp'],S[k].value['w'],c='k')
+
+    x_=sol['x'][:(len(S)*len(S))]
+    x_.size=(len(S),len(S))
+    r,c=x_.size
+    for r_ in xrange(r):
+        for c_ in xrange(c):
+            if x_[r_,c_] > 0.5:
+                plt.plot(np.array([S[r_].value['t_samp'],S[c_].value['t_samp']]),
+                         np.array([S[r_].value['w'],S[c_].value['w']]),'k')
+
+    for t in trues:
+        plt.scatter(t['t_samp'],t['w'],c='g')
+    
+    plt.show()
