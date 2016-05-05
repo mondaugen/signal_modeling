@@ -30,7 +30,7 @@ F_test1=[
         ]
 
 def test_1():
-    d=g_f_2lp(S_test1,F_test1,2)
+    d=g_f_2lp(S_test1,F_test1,2,opt={'calc_mean':0,'min_mean_dev':0})
     return d
 
 def rand_graph_1(min_Fk,max_Fk,K):

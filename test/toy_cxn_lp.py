@@ -102,7 +102,7 @@ Rw,Co=s.size
 a_plt=array(nodes)
 for r in xrange(Rw):
     for c in xrange(Co):
-        if s[r,c] > 0.25:
+        if s[r,c] > 0.95:
             plt.plot(a_plt[(r,c),0],a_plt[(r,c),1],'k')
         
 plt.show()
