@@ -33,14 +33,22 @@ sp.A_method='FOF';
 sp.L=1024;
 % Theoretical hop size
 sp.H=256;
-% For the noise amounts, this value can be interpreted as: 60% of the time, the
+% For the noise amounts, this value can be interpreted as: 68% of the time, the
 % value will be within this percentage of its true value, where 0.01 is 1% etc.
 % frequency noise variance
 sp.w_no=0;
-% frequency slope noise variance
-sp.psi_no=0;
+% Same as for frequency noise
 % amplitude noise variance
 sp.A_no=0;
+% For the frequency slope noise variance, this is a percentage of the minimum
+% and maximum theoretical slope of the fundamental harmonic. No more than this
+% value will be added or subtracted from the theoretical psi value 68% of the
+% time
+% frequency slope noise variance
+sp.psi_no=0;
+% For the amplitude slope noise variance, this is the amount in dB that the
+% amplitude after 1 hop's worth of samples will deviate from the theoretical
+% amplitude, had there not been any noise
 % amplitude slope noise variance
 sp.mu_no=0;
 
@@ -64,6 +72,10 @@ a_k_60=log(10^(-3))/log(10)/opt.A_k_60;
 opt.A_k=exp(a_k_60*k)*0.5;
 % amplitude coefficient
 opt.a_60=log(10^(-3))/log(10)/opt.T_60;
+% psi stddev calculation
+psi_sd=2*(2*pi)^2*opt.A_fm*opt.f_fm/(opt.Fs^2)*opt.psi_no;
+% mu stddev calculation
+mu_sd=opt.mu_no*log(10)/(20*opt.H);
 % sample indices
 n=(0:opt.H:(opt.N-1));
 n=n(:);
@@ -87,13 +99,14 @@ for t_=t'
                th=ols(log(s_),[ones(length(t__),1),n_]);
                rp.mu_r=th(2,:)';
                % Add noise
-               rp.mu_r.*=1+randn(length(rp.mu_r),1)*opt.mu_no;
+               rp.mu_r.+=randn(length(rp.mu_r),1).*(mu_sd);
                rp.X_r_=exp(th(1,:)').*(1+randn(length(th(1,:)),1)*opt.A_no);
            else
                % Divided by Fs because opt.a_60 is w.r.t. the time in seconds not the
                % sample number
                rp.mu_r=ones(opt.K,1)*opt.a_60/opt.Fs;
-               rp.mu_r.*=1+randn(opt.K,1)*opt.mu_no;
+               % Add noise
+               rp.mu_r.+=randn(length(rp.mu_r),1).*(mu_sd);
                % Add noise
                % The value where the AM parameter is multiplied by 0 is at the
                % centre of the window, which is then just the amplitude as if there
@@ -107,7 +120,7 @@ for t_=t'
     rp.w_r=2*pi*(opt.f0+opt.A_fm*sin(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B'/opt.Fs;
     rp.w_r.*=1+randn(opt.K,1)*opt.w_no;
     rp.psi_r=(2*pi)^2*opt.A_fm*opt.f_fm*cos(2*pi*opt.f_fm*t_+opt.phi_fm)*opt.k_B'/(opt.Fs^2);
-    rp.psi_r.*=1+randn(opt.K,1)*opt.psi_no;
+    rp.psi_r.+=randn(opt.K,1)*psi_sd;
     % Initial phase
     rp.phi_r=opt.phi+2*pi*(opt.f0*t_-opt.A_fm/(2*pi*opt.f_fm)*cos(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B';
     rp.X_r_.*=exp(j*rp.phi_r);

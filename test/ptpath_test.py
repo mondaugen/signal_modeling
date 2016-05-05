@@ -335,8 +335,13 @@ def LPNode_rp_dist(a,b):
     # add 1 because we were have singularity issues with small values and all
     # values are positive so it shouldn't make a difference
     return (b.value['w'] - wb_) ** 2. + 1
-    #return (b.value['mu'] - a.value['mu']) ** -2.
-    #return (b.value['w'] - a.value['w']) ** 2.
+
+def LPNode_rp_eu_dist(a,b):
+    """
+    Calculates distance from a to b as the euclidean distance from a.value['w']
+    tp b.value['w'].
+    """
+    return (b.value['w'] - a.value['w']) ** 2.
 
 def plot_lp_hsrp(sol,S,trues):
     for k in S.keys():
@@ -353,5 +358,71 @@ def plot_lp_hsrp(sol,S,trues):
 
     for t in trues:
         plt.scatter(t['t_samp'],t['w'],c='g')
+    
+    plt.show()
+
+def plot_lp_hsrp_cmp(sol1,sol2,S,trues):
+    plt.figure(1)
+    xmin=0
+    xmax=0
+    ymin=0
+    ymax=0
+    for k in S.keys():
+        plt.scatter(S[k].value['t_samp'],S[k].value['w'],c='k')
+        if S[k].value['t_samp'] < xmin:
+            xmin=S[k].value['t_samp']
+        if S[k].value['t_samp'] > xmax:
+            xmax=S[k].value['t_samp']
+        if S[k].value['w'] < ymin:
+            ymin=S[k].value['w']
+        if S[k].value['w'] > ymax:
+            ymax=S[k].value['w']
+    xdiff=xmax-xmin
+    ydiff=ymax-ymin
+    plt.figure(2)
+    for k in S.keys():
+        plt.scatter(S[k].value['t_samp'],S[k].value['w'],c='k')
+
+    x_=sol1['x'][:(len(S)*len(S))]
+    x_.size=(len(S),len(S))
+    r,c=x_.size
+    plt.figure(1)
+    for r_ in xrange(r):
+        for c_ in xrange(c):
+            if x_[r_,c_] > 0.5:
+                plt.plot(np.array([S[r_].value['t_samp'],S[c_].value['t_samp']]),
+                         np.array([S[r_].value['w'],S[c_].value['w']]),'k')
+
+    x_=sol2['x'][:(len(S)*len(S))]
+    x_.size=(len(S),len(S))
+    r,c=x_.size
+    plt.figure(2)
+    for r_ in xrange(r):
+        for c_ in xrange(c):
+            if x_[r_,c_] > 0.5:
+                plt.plot(np.array([S[r_].value['t_samp'],S[c_].value['t_samp']]),
+                         np.array([S[r_].value['w'],S[c_].value['w']]),'k')
+
+    plt.figure(1)
+    for t in trues:
+        plt.scatter(t['t_samp'],t['w'],c='g',edgecolor='face')
+    plt.title('Partial trajectories using frequency prediction error')
+    plt.xlabel('Sample Number')
+    plt.ylabel('Frequency in radians per sample')
+    plt.figure(2)
+    plt.title('Partial trajectories using Euclidean distance between frequencies')
+    plt.xlabel('Sample Number')
+    plt.ylabel('Frequency in radians per sample')
+    for t in trues:
+        plt.scatter(t['t_samp'],t['w'],c='g',edgecolor='face')
+
+    plt.figure(1,figsize=(7.,4.5))
+    plt.xlim((xmin-0.025*xdiff,xmax+0.025*xdiff))
+    plt.ylim((ymin-0.025*ydiff,ymax+0.025*ydiff))
+    plt.savefig('/tmp/lp_ptrack_fpredict.eps',bbox_inches='tight')
+    plt.figure(2,figsize=(7.,4.5))
+    plt.xlim((xmin-0.025*xdiff,xmax+0.025*xdiff))
+    plt.ylim((ymin-0.025*ydiff,ymax+0.025*ydiff))
+    plt.savefig('/tmp/lp_ptrack_eudist.eps',bbox_inches='tight')
     
     plt.show()

@@ -9,7 +9,7 @@ Pxm=cell(N_pxm);
 out=cell(3);
 [Pxm{1},opt]=harm_sines_rp(struct(
     'K',5,
-    'T',0.25,
+    'T',0.125,
     'H',256,
     'f0',440*2^((60-69)/12),
     'w_no',0.001,
@@ -20,7 +20,7 @@ out=cell(3);
 out{1,3}=opt;
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',5,
-    'T',0.25,
+    'T',0.125,
     'H',256,
     'f0',440*2^((61-69)/12),
     'w_no',0.001,
@@ -31,15 +31,15 @@ out{1,3}=opt;
     'psi_no',0.001));
 out{2,3}=opt;
 % percentage of spurious peaks added in relation to number of real peaks.
-spur_no=1;
+spur_no=2;
 % range of fake w parameters
 w_no_rng=[0 pi/4];
 % range of fake psi parameters
-psi_no_rng=[-1e-5 1e-5];
+psi_no_rng=[-1e-4 1e-4];
 % range of fake mu parameters
 mu_no_rng=[-1e-4 1e-4];
 phi_no_rng=[-pi pi];
-A_no_rng=[1e-6 1];
+A_no_rng=[1e-4 1];
 for n=1:length(Pxm{1})
     X=[]; % storage for random variables
     X_plt=[]; % Storage for plotting information

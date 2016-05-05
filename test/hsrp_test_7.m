@@ -20,7 +20,8 @@ Pxm=cell(N_pxm);
     'T_60',0.5,
     'mu_no',0.001,
     'f_fm',3,
-    'psi_no',0.001));
+    'psi_no',0.001,
+    'mu_no',.01));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
@@ -31,7 +32,8 @@ Pxm=cell(N_pxm);
     'mu_no',0.001,
     'phi_fm',.8,
     'f_fm',2,
-    'psi_no',0.001));
+    'psi_no',0.001,
+    'mu_no',.01));
 % percentage of spurious peaks added in relation to number of real peaks.
 spur_no=0.5;
 % range of fake w parameters

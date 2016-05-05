@@ -20,7 +20,7 @@ sol=ptpath_test.sol_test_mean_1(d,g["S"],g["F"])
 ptpath_test.plot_test_mean(sol,g["S"],g["F"])'
 
 # Invocation for importing data from MATLAB/Octave
-PYTHONPATH=$PWD:$PWD/test ipython -i -c 'import ptpath, ptpath_test
+PYTHONPATH=$PWD:$PWD/test python -i -c 'import ptpath, ptpath_test
 (S,F,opt,trues)=ptpath_test.load_grph_harm_sines_rp("/tmp/hsrp_20160503T205426560.mat")
 S_=reduce(lambda x,y: x+y,S)
 F_=reduce(lambda x,y: x+y,F)
