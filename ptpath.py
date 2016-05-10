@@ -85,27 +85,41 @@ def g_f_2lp(S,
     G_=list()
     h_=list()
     for f in F[:-1]:
-        a1_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+        a1_=cvx.spmatrix([],[],[],(1,N_nodes*N_nodes),'d')
         for i in f:
             # restrict number of edges leaving S[i]
-            a1_[i,:]=1
-            a1_[i,i]=0
+            for j in xrange(N_nodes):
+                a1_[i+j*N_nodes]=1
+            a1_[i+N_nodes*i]=0
         A_.append(a1_)
         # restrict this to the number of paths
         b_.append(J)
 
+    #for k in xrange(1,len(F)-1):
+    #    # For each node in the inner frames, the number of edges entering a node
+    #    # must equal the number of edges exiting the same node
+    #    for i in F[k]:
+    #        a_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+    #        for j in S[i].in_nodes:
+    #            a_[j,i]=1
+    #        for j in S[i].out_nodes:
+    #            a_[i,j]=-1
+    #        A_.append(a_)
+    #        # this must sum to 0
+    #        b_.append(0)
     for k in xrange(1,len(F)-1):
         # For each node in the inner frames, the number of edges entering a node
         # must equal the number of edges exiting the same node
         for i in F[k]:
-            a_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
+            a_=cvx.spmatrix([],[],[],(1,N_nodes*N_nodes),'d')
             for j in S[i].in_nodes:
-                a_[j,i]=1
+                a_[j+i*N_nodes]=1
             for j in S[i].out_nodes:
-                a_[i,j]=-1
+                a_[i+j*N_nodes]=-1
             A_.append(a_)
             # this must sum to 0
             b_.append(0)
+
 
     for k in xrange(len(F)):
         if len(F[k]) >= J:
@@ -194,13 +208,17 @@ def g_f_2lp(S,
     A=cvx.spmatrix([],[],[],(A_n_rows,A_n_cols),'d')
     # fill with values
     A_idx=0
+    #for i in xrange(len(A_)):
+    #    # flatten matrix
+    #    A_[i].size=(N_nodes*N_nodes,1)
+    #    # store transpose (see LP definition)
+    #    A[i,:(N_nodes*N_nodes)]=A_[i].T
+    #    # Unflatten
+    #    A_[i].size=(N_nodes,N_nodes)
+    #    A_idx+=1
     for i in xrange(len(A_)):
-        # flatten matrix
-        A_[i].size=(N_nodes*N_nodes,1)
         # store transpose (see LP definition)
-        A[i,:(N_nodes*N_nodes)]=A_[i].T
-        # Unflatten
-        A_[i].size=(N_nodes,N_nodes)
+        A[i,:(N_nodes*N_nodes)]=A_[i]
         A_idx+=1
 
     if (opt['calc_mean']):

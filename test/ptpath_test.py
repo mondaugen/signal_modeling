@@ -9,6 +9,8 @@ import random
 import math
 from math import sqrt, cos, sin, pi
 import scipy.io as sio
+import string
+from itertools import combinations, product, permutations
 
 S_test1={
         0: LPNode(0.12,[]     ,[2,3,4],0),
@@ -80,7 +82,8 @@ def ranks_test_1(d):
     e['B_rank']=linalg.matrix_rank(e['B'])
     return e
 
-def plot_test(sol,S):
+def plot_test(sol,S,show=True,fignum=0):
+    plt.figure(fignum)
     for k in S.keys():
         plt.scatter(S[k].frame_num,S[k].value,c='k')
     x_=sol['x'][:(len(S)*len(S))]
@@ -91,7 +94,8 @@ def plot_test(sol,S):
             if x_[r_,c_] > 0.5:
                 plt.plot(np.array([S[r_].frame_num,S[c_].frame_num,]),
                          np.array([S[r_].value,S[c_].value,]),'k')
-    plt.show()
+    if (show):
+        plt.show()
 
 def plot_test_1(sol):
     for k in S_test1.keys():
@@ -426,3 +430,121 @@ def plot_lp_hsrp_cmp(sol1,sol2,S,trues):
     plt.savefig('/tmp/lp_ptrack_eudist.eps',bbox_inches='tight')
     
     plt.show()
+
+def shortest_eu_path_viterbi(S,F):
+    """
+    Use the viterbi algorithm to find the best path through a trellis based on
+    it having the minimum Euclidean distance.
+    """
+    F_lens=tuple([len(f) for f in F])
+    T=len(F)
+    S_=np.ndarray(1,dtype=string.join(['%dfloat64' for _ in
+        xrange(T)],',')%F_lens)[0]
+    de=np.ndarray(1,dtype=string.join(['%dfloat64' for _ in
+        xrange(T)],',')%F_lens)[0]
+    ps=np.ndarray(1,dtype=string.join(['%dint64' for _ in
+        xrange(T)],',')%F_lens)[0]
+    q=np.ndarray(T,'int64')
+    de[0]=0
+    ps[0]=0
+    for t in xrange(T):
+        for j in xrange(len(F[t])):
+            S_[t][j]=S[F[t][j]].value
+
+    for t in xrange(1,T):
+        N=F_lens[t]
+        for j in xrange(N):
+            cst_=de[t-1]+np.power(S_[t][j]-S_[t-1],2)
+            ps[t][j]=np.argmin(cst_)
+            de[t][j]=cst_[ps[t][j]]
+
+    q[T-1]=np.argmin(de[T-1])
+    for t in (T-2-np.arange(T-1)):
+        q[t]=ps[t+1][q[t+1]]
+    return q
+
+def plot_sepv(S,F,q):
+    """
+    Plot the shortest path returned by the viterbi algorithm.
+    """
+    T=len(F)
+    ys=[]
+    for t in xrange(T):
+        for f in F[t]:
+            plt.scatter(t,S[f].value,c='k')
+        ys.append(S[F[t][q[t]]].value)
+    plt.plot(list(xrange(T)),ys,c='g')
+
+    plt.show()
+
+def shortest_paths_cost_lattice(S,F,J,cost_func=LPNode_euclidean_dist):
+    """
+    Build the cost lattice for the Viterbi algorithm that find the best J
+    non-overlapping paths through a lattice.
+    The number of nodes in each frame must be >= to J.
+
+    Returns (C,C_cxns)
+        C: Are costs
+        C_cxns: Are the connections assocated with the costs
+    """
+    T=len(F)
+    # Cost of transitions
+    C=[[] for _ in xrange(T-1)]
+    # Cost of connections
+    C_cxns=[[] for _ in xrange(T-1)]
+    for t in xrange(T-1):
+        it=product(combinations(xrange(len(F[t])),J),
+                permutations(xrange(len(F[t+1])),J))
+        for k in it:
+            cst=0
+            for i,j in zip(k[0],k[1]):
+                cst+=cost_func(S[F[t+1][j]],S[F[t][i]])
+            C[t].append(cst)
+            C_cxns[t].append(tuple(k))
+    return (C,C_cxns)
+
+def shortest_paths_viterbi(C,C_cxn):
+    """
+    Use viterbi algorithm to find shortest connected path through trellis C.
+    """
+    T=len(C)
+    C_lens=tuple([len(c) for c in C])
+    de=np.ndarray(1,dtype=string.join(['%dfloat64' for _ in
+        xrange(T)],',')%C_lens)[0]
+    ps=np.ndarray(1,dtype=string.join(['%dint64' for _ in
+        xrange(T)],',')%C_lens)[0]
+    q=np.ndarray(T,'int64')
+    for j in xrange(C_lens[0]):
+        de[0][j]=C[0][j]
+    ps[0]=0
+
+    for t in xrange(1,T):
+        N=C_lens[t]
+        for j in xrange(N):
+            cst_=[0 for n_ in xrange(C_lens[t-1])]
+            for i in xrange(C_lens[t-1]):
+                if C_cxn[t-1][i][1] != C_cxn[t][j][0]:
+                    # if the node indices don't match, give a prohibitively high
+                    # cost
+                    cst_[i]+=1000000.
+                cst_[i]+=de[t-1][i]+C[t][j]
+            ps[t][j]=np.argmin(cst_)
+            de[t][j]=cst_[ps[t][j]]
+
+    q[T-1]=np.argmin(de[T-1])
+    for t in (T-2-np.arange(T-1)):
+        q[t]=ps[t+1][q[t+1]]
+    return q
+
+def plot_spv(S,F,q,C_cxn,show=True,fignum=0):
+    plt.figure(fignum)
+    T=len(F)
+    for t in xrange(T):
+        for f in F[t]:
+            plt.scatter(t,S[f].value,c='k')
+    for t in xrange(T-1):
+        for j,k in zip(C_cxn[t][q[t]][0],C_cxn[t][q[t]][1]):
+            plt.plot([t,t+1],[S[F[t][j]].value,S[F[t+1][k]].value],'g')
+    if (show):
+        plt.show()
+
