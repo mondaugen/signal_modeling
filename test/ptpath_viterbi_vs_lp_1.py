@@ -1,7 +1,7 @@
 import ptpath, ptpath_test
 import matplotlib.pyplot as plt
 J=4
-g=ptpath_test.rand_graph_1(6,6,10)
+g=ptpath_test.rand_graph_1(4,5,50)
 (C,C_cxns)=ptpath_test.shortest_paths_cost_lattice(g['S'],g['F'],J)
 print 'Solving via Viterbi'
 q=ptpath_test.shortest_paths_viterbi(C,C_cxns)

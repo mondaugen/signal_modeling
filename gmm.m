@@ -12,7 +12,7 @@ function [C,P,mu,S,W]=gmm(X,mu,S,W,B)
 % W is a vector of 1xK entries
 % B is the number of iterations of the EM algorithm to compute.
 % 
-% C are the maximum apriori classifications
+% C are the maximum likelihood classifications
 % P are the classification probabilities
 % mu are the final means
 % S are the final variances

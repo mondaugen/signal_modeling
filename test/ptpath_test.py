@@ -263,7 +263,7 @@ def load_grph_harm_sines_rp(fpath):
             D[f]=s
 
 
-    Returns the tuple (S,F) where
+    Returns a dictionary with following keys where
         S: is the set of nodes describing the graph
         F: a list of tuples of node numbers describing the nodes numbers in each
            frame.
@@ -284,6 +284,14 @@ def load_grph_harm_sines_rp(fpath):
     # time in samples
     t_samp=0
     trues=[]
+    # Principal components
+    A=[]
+    # Indices of values to keep
+    Xdi=[]
+    # Indices of values to discard
+    Xki=[]
+    # Classifications
+    C=[]
     for r in xrange(rows):
         new_nodes=[]
         # combine first and second column matricies
@@ -322,8 +330,25 @@ def load_grph_harm_sines_rp(fpath):
                 't_samp': t_samp
             }
             trues.append(d)
+        if (c.shape[1] == 8):
+            # Load in principal components
+            A.append(c[r,4])
+            # load in keep and discard indices
+            Xdi.append(c[r,5])
+            Xki.append(c[r,6])
+            # Load in classifications
+            C.append(c[r,7])
+
         t_samp+=H
-    return (S,F,opt,trues)
+    rslt=dict()
+    rslt['S']=S
+    rslt['F']=F
+    rslt['opt']=opt
+    rslt['trues']=trues
+    rslt['Xdi']=[x-1 for x in Xdi]
+    rslt['Xki']=[x-1 for x in Xki]
+    rslt['C']=C
+    return rslt
 
 def LPNode_rp_dist(a,b):
     """
@@ -503,7 +528,7 @@ def shortest_paths_cost_lattice(S,F,J,cost_func=LPNode_euclidean_dist):
             C_cxns[t].append(tuple(k))
     return (C,C_cxns)
 
-def shortest_paths_viterbi(C,C_cxn):
+def shortest_paths_viterbi(C,C_cxn,big_cost=1000000):
     """
     Use viterbi algorithm to find shortest connected path through trellis C.
     """
@@ -526,7 +551,7 @@ def shortest_paths_viterbi(C,C_cxn):
                 if C_cxn[t-1][i][1] != C_cxn[t][j][0]:
                     # if the node indices don't match, give a prohibitively high
                     # cost
-                    cst_[i]+=1000000.
+                    cst_[i]+=big_cost
                 cst_[i]+=de[t-1][i]+C[t][j]
             ps[t][j]=np.argmin(cst_)
             de[t][j]=cst_[ps[t][j]]
@@ -548,3 +573,30 @@ def plot_spv(S,F,q,C_cxn,show=True,fignum=0):
     if (show):
         plt.show()
 
+def plot_hsrpc_test(Z,D):
+    """
+    Using dictionary Z loaded from file, plot the different sources in different
+    colours and the spurious sources in black.
+    D is the dictionary created by reducing the nodes in Z['S'] (see
+    ptpath_hsrp_cmp_1.py)
+    """
+    T=len(Z['Xki'])
+    H=float(Z['opt'][0]['H'])
+    for t in xrange(T):
+        F_keep=np.array(Z['F'][t],dtype='i')
+        F_keep=F_keep[Z['Xki'][t].astype('i')]
+        for i in xrange(len(Z['C'][t])):
+            w=float(D[int(F_keep[i])].value['w'])
+            psi=float(D[int(F_keep[i])].value['psi'])
+            w0=w-psi*H/2.
+            w1=w+psi*H/2.
+            plt.plot([t*H-H/2.,t*H+H/2.],
+                    [w0,w1],
+                    c=('#%06x' % (0xffffff/140*((int(Z['C'][t][i])+1)*30),)))
+        F_dis=np.array(Z['F'][t],dtype='i')
+        F_dis=F_dis[Z['Xdi'][t].astype('i')]
+        for i in xrange(len(F_dis)):
+            plt.scatter(t*H,
+                    D[int(F_dis[i])].value['w'],
+                    c='k')
+    plt.show()
