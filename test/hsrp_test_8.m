@@ -4,13 +4,14 @@
 % save result (for loading into other programs)
 clear;
 fname=sprintf('/tmp/hsrp_%s.mat',datestr(now(),'yyyymmddTHHMMSSFFF'));
+printf('%s\n',fname)
 N_pxm=2;
 Pxm=cell(N_pxm);
 out=cell(3);
 [Pxm{1},opt]=harm_sines_rp(struct(
     'K',5,
-    'T',0.125,
-    'H',256,
+    'T',0.5,
+    'H',512,
     'f0',440*2^((60-69)/12),
     'w_no',0.001,
     'T_60',0.5,
@@ -20,8 +21,8 @@ out=cell(3);
 out{1,3}=opt;
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',5,
-    'T',0.125,
-    'H',256,
+    'T',0.5,
+    'H',512,
     'f0',440*2^((61-69)/12),
     'w_no',0.001,
     'T_60',0.75,
@@ -31,7 +32,7 @@ out{1,3}=opt;
     'psi_no',0.001));
 out{2,3}=opt;
 % percentage of spurious peaks added in relation to number of real peaks.
-spur_no=2;
+spur_no=.2;
 % range of fake w parameters
 w_no_rng=[0 pi/4];
 % range of fake psi parameters

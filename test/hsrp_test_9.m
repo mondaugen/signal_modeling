@@ -19,7 +19,7 @@ Pxm=cell(N_pxm);
 out=cell(3);
 [Pxm{1},opt]=harm_sines_rp(struct(
     'K',10,
-    'T',0.5,
+    'T',.5,
     'H',256,
     'f0',440*2^((60-69)/12),
     'w_no',0.001,
@@ -30,7 +30,7 @@ out=cell(3);
 out{1,3}=opt;
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',10,
-    'T',0.5,
+    'T',.5,
     'H',256,
     'f0',440*2^((61-69)/12),
     'w_no',0.001,

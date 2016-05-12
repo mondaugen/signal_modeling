@@ -573,7 +573,7 @@ def plot_spv(S,F,q,C_cxn,show=True,fignum=0):
     if (show):
         plt.show()
 
-def plot_hsrpc_test(Z,D):
+def plot_hsrpc_test(Z,D,show=True,fignum=0):
     """
     Using dictionary Z loaded from file, plot the different sources in different
     colours and the spurious sources in black.
@@ -582,6 +582,7 @@ def plot_hsrpc_test(Z,D):
     """
     T=len(Z['Xki'])
     H=float(Z['opt'][0]['H'])
+    plt.figure(fignum)
     for t in xrange(T):
         F_keep=np.array(Z['F'][t],dtype='i')
         F_keep=F_keep[Z['Xki'][t].astype('i')]
@@ -599,7 +600,8 @@ def plot_hsrpc_test(Z,D):
             plt.scatter(t*H,
                     D[int(F_dis[i])].value['w'],
                     c='k')
-    plt.show()
+    if(show):
+        plt.show()
 
 def make_pp_groups(Z,D):
     """
@@ -634,7 +636,7 @@ def make_pp_groups(Z,D):
             S_groups[f].out_nodes=F_groups[t+1]
         # innodes
         for f in F_groups[t+1]:
-            S_groups[f].in_nodes=F_groups[t-1]
+            S_groups[f].in_nodes=F_groups[t]
     rslt=dict()
     rslt['S']=S_groups
     rslt['F']=F_groups
@@ -702,7 +704,6 @@ def lp_sol_extract_paths(sol,S,F):
                 # paths list albeit with less nodes. We still check for
                 # connections but there shouldn't be any.
                 if x[paths[n][-1],F[t][k]] > 0.5:
-                    print paths[n][-1],F[t][k]
                     paths[n].append(F[t][k])
     # Paths will now contain a list of paths represented by their keys in
     # S_groups (the set S containing the groups of nodes)
@@ -736,19 +737,19 @@ def pp_groups_plot_paths(S_groups,paths,opt,show=False,fignum=0):
     opt is a dictionary and should contain
         H: the hop size in samples
     """
-    print S_groups
     plt.figure(fignum)
     for c in xrange(len(paths)):
         t=0
-        print paths
         for p in paths[c]:
-            print p
             for v in S_groups[p].value:
                 t_=float(t*opt['H'])
                 w_=float(v['w'])
-                print t_, w_
-                plt.scatter(t_,w_,
-                        c=('#%06x' % (0xffffff/140*((c+1)*30),)))
+                t0=-float(opt['H']/2.)
+                t1=float(opt['H']/2.)
+                w0=w_+t0*float(v['psi'])
+                w1=w_+t1*float(v['psi'])
+                plt.plot([t_+t0,t_+t1],[w0,w1],
+                        c=('#%06x' % (0xffffff/140*((c+2)*30),)))
             t+=1
 
     if (show):
