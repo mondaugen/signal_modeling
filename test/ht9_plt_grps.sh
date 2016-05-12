@@ -3,4 +3,4 @@
 # bash ht9_plt.sh
 fname=`octave -q hsrp_test_9.m`
 echo ${fname}
-PYTHONPATH=$PWD/..:$PWD python ptpath_hsrpc_plot_test_1.py ${fname}
+PYTHONPATH=$PWD/..:$PWD python -m pdb ptpath_pp_groups_test_1.py ${fname}

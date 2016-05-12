@@ -600,3 +600,156 @@ def plot_hsrpc_test(Z,D):
                     D[int(F_dis[i])].value['w'],
                     c='k')
     plt.show()
+
+def make_pp_groups(Z,D):
+    """
+    From dictionary Z loded from file and dictionary created by reducing the
+    nodes in Z['S'] (see plot_hsrpc_test), create a set S_groups containing
+    nodes representing the data-points considered belonging to the same source
+    in one frame, and also create a list of frames recording what nodes (i.e.,
+    what keys in S_groups) are present in each frame.
+    """
+    T=len(Z['Xki'])
+    F_groups=[[] for _ in xrange(T)]
+    S_groups=dict()
+    key=0
+    for t in xrange(T):
+        # The keys of the nodes in D that were kept (not considered spurious)
+        F_keep=np.array(Z['F'][t],dtype='i')
+        F_keep=F_keep[Z['Xki'][t].astype('i')]
+        c_max=np.max(Z['C'][t])
+        # iterate through the classifications
+        for c in xrange(int(c_max)):
+            S_t=list()
+            for i in xrange(len(Z['C'][t])):
+                if int(Z['C'][t][i]) == (c+1):
+                    S_t.append(D[int(F_keep[i])].value)
+            S_groups[key]=LPNode(S_t,[],[],t)
+            F_groups[t].append(key)
+            key+=1
+        # Now associate the correct in and out nodes
+    for t in xrange(T-1):
+        # outnodes
+        for f in F_groups[t]:
+            S_groups[f].out_nodes=F_groups[t+1]
+        # innodes
+        for f in F_groups[t+1]:
+            S_groups[f].in_nodes=F_groups[t-1]
+    rslt=dict()
+    rslt['S']=S_groups
+    rslt['F']=F_groups
+    return rslt
+
+def LPNode_ppg_dist(a,b,opt):
+    """
+    Find the average error in predicting the values of b from the values of a.
+    
+    opt is a dictionary containing addtional information. In order to be able to
+    pass this to the LP creation functions, you need to wrap it, like this:
+
+    def my_func(a,b):
+        opt={ ... } # stuff you want to pass
+        return LPNode_ppg_dist(a,b,opt)
+
+    ptpath.g_f_2_lp(...,cost_func=my_func)
+
+    opt should contain the fields:
+        H: the hop size in samples
+        P(x,y): The probability of x xnd y being connected. Simply pass
+
+                    def P(x,y):
+                        return 1.
+
+                if you want all to be considered equal. Otherwise pass a
+                function like
+
+                    def P(x,y):
+                        exp(-(x['w']-y['w'])**2.)
+
+                (it doesn't have to be a true probability, just a weighting)
+    """
+    t_a=a.frame_num
+    t_b=b.frame_num
+    t_de=(t_b-t_a)*opt['H']
+    t_de=float(t_de)
+    E_e=0
+    for x in a.value:
+        w_pred=x['w']+t_de*x['psi']
+        for y in b.value:
+            w_err=(y['w']-w_pred)**2.
+            E_e+=w_err*opt['P'](x,y)
+    return E_e
+
+def lp_sol_extract_paths(sol,S,F):
+    """
+    Using a set of groups and frames, extract the connected paths.
+    """
+    T=len(F)
+    N_F0=len(F[0])
+    # Auxiliary variables will be tacked on the end, discard them
+    x=sol['x'][:(len(S)*len(S))]
+    x.size=(len(S),len(S))
+    paths=[]
+    for n in xrange(N_F0):
+        # (we assume more than 1 frame)
+        # Find connection for node S[F[0][n]]
+        paths.append([])
+        paths[-1].append(F[0][n])
+        for t in xrange(1,T):
+            K_Ft=len(F[t])
+            for k in xrange(K_Ft):
+                # If there was no path connection, the path still remains in the
+                # paths list albeit with less nodes. We still check for
+                # connections but there shouldn't be any.
+                if x[paths[n][-1],F[t][k]] > 0.5:
+                    print paths[n][-1],F[t][k]
+                    paths[n].append(F[t][k])
+    # Paths will now contain a list of paths represented by their keys in
+    # S_groups (the set S containing the groups of nodes)
+    return paths
+
+def lp_sol_plot_paths(sol,S,F,show=True,fignum=0):
+    """
+    Plots the source paths for testing.
+    """
+    T=len(F)
+    N_F0=len(F[0])
+    x=sol['x'][:(len(S)*len(S))]
+    x.size=(len(S),len(S))
+    ro,co=x.size
+    for k in S.keys():
+        plt.scatter(S[k].value[0]['t_samp'],S[k].value[0]['w'],c='k')
+    for r_ in xrange(ro):
+        for c_ in xrange(co):
+            if x[r_,c_] > 0.5:
+                plt.plot([S[r_].value[0]['t_samp'],S[c_].value[0]['t_samp']],
+                        [S[r_].value[0]['w'],S[c_].value[0]['w']],c='b')
+    if(show):
+        plt.show()
+
+
+def pp_groups_plot_paths(S_groups,paths,opt,show=False,fignum=0):
+    """
+    Plot paths by looking up data in S_groups and plotting it in a color
+    corresponding to the path.
+
+    opt is a dictionary and should contain
+        H: the hop size in samples
+    """
+    print S_groups
+    plt.figure(fignum)
+    for c in xrange(len(paths)):
+        t=0
+        print paths
+        for p in paths[c]:
+            print p
+            for v in S_groups[p].value:
+                t_=float(t*opt['H'])
+                w_=float(v['w'])
+                print t_, w_
+                plt.scatter(t_,w_,
+                        c=('#%06x' % (0xffffff/140*((c+1)*30),)))
+            t+=1
+
+    if (show):
+        plt.show()
