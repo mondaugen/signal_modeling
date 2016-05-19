@@ -1,4 +1,6 @@
 # A test computing the 2nd order argument parameters using DDM.
+# WARNING: This program makes the computer lock up momentarily and report a
+# MemoryError...
 import numpy as np
 import matplotlib.pyplot as plt
 import sigmod as sm
@@ -23,7 +25,7 @@ def lmaxw(x,b,o,th):
 # to the sample number.
 
 # Number of partials
-P=5
+P=1
 
 # time in seconds
 T=1.
@@ -50,9 +52,9 @@ a_r=np.array([
     # 1st amplitude coefficient
     # picked so that amplitude does not go up more than by a factor of 2
     # and down by a factor of 100 from the beginning to the end of the signal
-    np.random.uniform(np.log(1.e-2),np.log(2.),P)/N,
+    0.1,#np.random.uniform(np.log(1.e-2),np.log(2.),P)/N,
     # The same but time is squared so divided by time squared
-    np.random.uniform(np.log(1.e-2),np.log(2.),P)/(N**2.)
+    0.1#np.random.uniform(np.log(1.e-2),np.log(2.),P)/(N**2.)
     ])
 a_r=np.flipud(a_r)
 
@@ -65,7 +67,7 @@ a_i=np.array([
 #    np.pi*2.*10./Fs*np.ones(P),
     # 2nd frequency coefficient. Frequency doesn't change by more than octave
     # throughout the sound
-    0.5*np.random.uniform(-1.,1.,P)/(float(N))
+    0.5*np.random.uniform(-.1,.1,P)/(float(N))
     ])
 a_i[2,:]*=a_i[1,:]
 a_i=np.flipud(a_i)
@@ -75,7 +77,7 @@ x=np.exp(np.apply_along_axis(np.polyval,0,a_r,n)
 xs=np.sum(x,1)
 
 # Add noise
-xs+=np.random.standard_normal(N)*np.sqrt(0.1)
+xs+=np.random.standard_normal(N)*np.sqrt(0.01)
 
 # Size of DFT in STFT
 N_stft=512
@@ -120,14 +122,14 @@ X__H_dp_2_w=np.fft.fft(x__H*W_0*2.*l_x__H)*np.exp(j1*2.*np.pi*(H_stft+(L_w-1)/2.
 X_H_dp_2_w=np.fft.fft(x_H*W_0*2.*l_x_H)*np.exp(j1*2.*np.pi*(-H_stft+(L_w-1)/2.)*k_x)
 
 # Derivative of window
-X_0_wd=np.fft.fft(x_0*dW_0)*np.exp(j1*2.*np.pi*(L_w-1)/2.*k_x)
-X__H_wd=np.fft.fft(x__H*dW_0)*np.exp(j1*2.*np.pi*(H_stft+(L_w-1)/2.)*k_x)
-X_H_wd=np.fft.fft(x_H*dW_0)*np.exp(j1*2.*np.pi*(-H_stft+(L_w-1)/2.)*k_x)
+X_0_wd=np.fft.fft(x_0*dW_0)#*np.exp(j1*2.*np.pi*(L_w-1)/2.*k_x)
+X__H_wd=np.fft.fft(x__H*dW_0)#*np.exp(j1*2.*np.pi*(H_stft+(L_w-1)/2.)*k_x)
+X_H_wd=np.fft.fft(x_H*dW_0)#*np.exp(j1*2.*np.pi*(-H_stft+(L_w-1)/2.)*k_x)
 
 X0_dp1w_ma=[]
 for row_ in np.abs(X_0_dp_1_w):
     zm_,zmi_=sm.lextrem(row_)
-    X0_dp1w_ma.append(zmi_[lmaxw(zm_,12,6,1.e-1)])
+    X0_dp1w_ma.append(zmi_[lmaxw(zm_,12,6,1.e2)])
 
 a_ddm=[]
 for h in xrange(1,len(X0_dp1w_ma)-1):
@@ -144,11 +146,14 @@ for h in xrange(1,len(X0_dp1w_ma)-1):
             np.c_[X__H_dp_1_w[h,pre_max-1:pre_max+2],X__H_dp_2_w[h,pre_max-1:pre_max+2]]
         ))
         b=np.vstack((
-            np.c_[X_0_wd[h,zmi_-1:zmi_+2]],
-            np.c_[X_H_wd[h,post_max-1:post_max+2]],
-            np.c_[X__H_wd[h,pre_max-1:pre_max+2]]
+            np.c_[X_0_dp_1_w[h,zmi_-1:zmi_+2]*-2.*np.pi*j1*np.arange(zmi_-1,zmi_+2)/L_w]
+                +np.c_[X_0_wd[h,zmi_-1:zmi_+2]],
+            np.c_[X_0_dp_1_w[h,post_max-1:post_max+2]*-2.*np.pi*j1*np.arange(post_max-1,post_max+2)/L_w]
+                +np.c_[X_H_wd[h,post_max-1:post_max+2]],
+            np.c_[X_0_dp_1_w[h,pre_max-1:pre_max+2]*-2.*np.pi*j1*np.arange(pre_max-1,pre_max+2)/L_w]
+                +np.c_[X__H_wd[h,pre_max-1:pre_max+2]]
         ))
-        a_ddm_=np.linalg.lstsq(A,b)[0]
+        a_ddm_=np.linalg.lstsq(A,-b)[0]
         a_ddm[-1].append(a_ddm_)
 
 lmaxs=[]
@@ -175,9 +180,9 @@ for h in xrange(1,len(X0_dp1w_ma)-1):
         n1=H_stft/2.
         w0=a1+n0*a2
         w1=a1+n1*a2
-        k0=w0/(np.pi*2.)*N_stft
-        k1=w1/(np.pi*2.)*N_stft
-        plt.plot([n0/H_stft+h,n1/H_stft+h],[w0,w1],c='r')
+        k0=w0/(np.pi*2.)*L_w
+        k1=w1/(np.pi*2.)*L_w
+        plt.plot([n0/H_stft+h,n1/H_stft+h],[k0,k1],c='r')
 
 plt.show()
 
