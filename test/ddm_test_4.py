@@ -5,27 +5,30 @@ a0=0
 a1=complex('1e-3+0.5j')
 a2=complex('-1e-6+1e-4j')
 N=512
-n=np.arange(N)
+n=np.arange(N)+128
 j1=complex('1j')
 x=np.exp(0+a1*n+a2*n**2.)
-x+=np.random.standard_normal(N)*np.sqrt(1)
+x+=np.random.standard_normal(N)*np.sqrt(0.)
 plt.figure(1)
 plt.plot(n,np.real(x))
-w=0.5+0.5*np.cos(2.*np.pi*(np.arange(-N/2.,N/2.))/N)
-dw=-np.pi/N*np.sin(2.*np.pi*(np.arange(-N/2.,N/2.))/N)
+#w=0.5+0.5*np.cos(2.*np.pi*(np.arange(-N/2.,N/2.))/N)
+#dw=-np.pi/N*np.sin(2.*np.pi*(np.arange(-N/2.,N/2.))/N)
+w=0.5+0.5*np.cos(2.*np.pi*np.arange(-(N-2)/2.,(N-2)/2.+1)/(N-1))
+dw=-np.pi/N*np.sin(2.*np.pi*np.arange(-(N-2)/2.,(N-2)/2.+1)/(N-1))
 plt.figure(2)
-plt.plot(n,w,n,dw)
+plt.plot(n[:-1],w,n[:-1],dw)
 # Simply using window
-a1_=-np.inner(x,dw)/np.inner(x,w)
+a1_=-np.inner(x[:-1],dw)/np.inner(x[:-1],w)
 print np.imag(a1_)
 # Using Fourier transform (bandpass filtering the signal)
-#a1__=-np.fft.fft(x*(-w*2.*np.pi*j1*n/N-dw))/np.fft.fft(x*w)
-#x_=x[::-1]
-#x_=np.r_[x_[-1],x_[:-1]]
-Xw=np.fft.fft(x*w)
-Xp2w=np.fft.fft((x*2.*n)*w)
-Xdw=np.fft.fft(x*dw)
-Xw_=Xw*(-2.*np.pi*j1*n/N)+Xdw
+#Xw=np.fft.fft(x*w)
+#Xp2w=np.fft.fft((x*2.*n)*w)
+#Xdw=np.fft.fft(x*dw)
+n_=np.arange(N)
+Xw=np.fft.fft(x[:-1]*w,N)#*np.exp(-2.*np.pi*1j*n/N)
+Xp2w=np.fft.fft((x[:-1]*2.*n[:-1])*w,N)#*np.exp(-2.*np.pi*1j*n/N)
+Xdw=np.fft.fft(x[:-1]*dw,N)#*np.exp(-2.*np.pi*1j*n/N)
+Xw_=Xw*(-2.*np.pi*j1*n_/N)+Xdw
 Xw_A=np.abs(Xw)
 Xw_mai0=Xw_A.argmax()
 #if (Xw_A[Xw_mai0+1]>Xw_A[Xw_mai0-1]):
