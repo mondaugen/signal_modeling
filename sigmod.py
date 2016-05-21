@@ -200,3 +200,74 @@ def ddm_p2_1_3(x,w,dw):
     a0=(np.log(np.inner(x,np.conj(gam)))
         -np.log(np.inner(gam,np.conj(gam))))
     return np.vstack((a0,a))
+
+def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
+    """
+    Compute parameters of 2nd order polynomial using 2 bins surrounding the
+    maximum of the STFT at the centre of signal x.
+
+    x:  
+        the signal to analyse, must have length of at least N_w where N_w is
+        the length of the window.
+    w:  
+        the analysis window.
+    dw: 
+        the derivative of the analysis window
+    b:
+        the size of the bands (in samples) in which to search for maxima
+    o:
+        the overlap of the bands (in samples)
+    th:
+        the minimum amplitude of a true peak (peaks lower than this are not
+        considered)
+    M:
+        the maximum index to consider. Can be used to only consider half the
+        spectrum for example.
+
+    Returns 
+
+    a:
+        a vector containing the estimated parameters
+    """
+    N_x=len(x)
+    N_w=len(w)
+    Ncx=(N_x-1)/2
+    Ncw=(N_w-1)/2
+    nx0=np.arange(N_x)
+    x0=x[nx0]
+    # FFT are zero padded by one assuming N_w has odd length.
+    Xp1w=np.fft.fft(x0*w)
+    Xp2w=np.fft.fft(2.*nx0*x0*w)
+    Xdw_=np.fft.fft(x0*dw)
+    Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_x)+Xdw_
+    b_=0
+#    wb=np.hanning(b)
+    result=[]
+    kma=set()
+    for b_ in np.arange(0,M-b,o):
+        kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
+        if ((np.abs(Xp1w)[kma0] < th) or (kma0 in kma)):
+            continue
+        kma.add(kma0)
+        A=np.c_[
+                np.r_[
+                    Xp1w[(kma0)-1:(kma0+2)],
+                    ],
+                np.r_[
+                    Xp2w[(kma0)-1:(kma0+2)],
+                    ]
+                ]
+        c=np.c_[
+                np.r_[
+                    Xdw[(kma0)-1:(kma0+2)],
+                    ]
+                ]
+        try:
+            a=np.linalg.lstsq(A,-c)[0]
+            gam=np.exp(a[0]*nx0+a[1]*nx0**2.)
+            a0=(np.log(np.inner(x,np.conj(gam)))
+                -np.log(np.inner(gam,np.conj(gam))))
+            result.append(np.vstack((a0,a)))
+        except ValueError:
+            pass
+    return result
