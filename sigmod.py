@@ -243,12 +243,12 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
     b_=0
 #    wb=np.hanning(b)
     result=[]
-    kma=set()
-    for b_ in np.arange(0,M-b,o):
+    while (b_ < M):
         kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
-        if ((np.abs(Xp1w)[kma0] < th) or (kma0 in kma)):
+        if (np.abs(Xp1w)[kma0] < th):
+            b_+=o
             continue
-        kma.add(kma0)
+        b_=kma0+o
         A=np.c_[
                 np.r_[
                     Xp1w[(kma0)-1:(kma0+2)],

@@ -2,6 +2,7 @@
 import numpy as np
 import cvxopt as cvx
 from math import sqrt
+import sys
 
 class LPNode:
     def __init__(self,value=0,in_nodes=[],out_nodes=[],frame_num=-1):
@@ -64,6 +65,7 @@ def g_f_2lp(S,
             G:  the inequality constraint matrix of the expression Gx<=h
             h:  the equality constraint matrix of the above expression
     """
+    sys.stderr.write('Calculating cost vector c.\n')
     N_nodes=len(S)
     c=cvx.matrix(float('inf'),(N_nodes,N_nodes))
     cmax=float('-inf')
@@ -84,6 +86,7 @@ def g_f_2lp(S,
     b_=list()
     G_=list()
     h_=list()
+    sys.stderr.write('Restricting number of edges leaving each node.\n')
     for f in F[:-1]:
         a1_=cvx.spmatrix([],[],[],(1,N_nodes*N_nodes),'d')
         for i in f:
@@ -107,6 +110,7 @@ def g_f_2lp(S,
     #        A_.append(a_)
     #        # this must sum to 0
     #        b_.append(0)
+    sys.stderr.write('Balancing number of edges entering and exiting a node.\n')
     for k in xrange(1,len(F)-1):
         # For each node in the inner frames, the number of edges entering a node
         # must equal the number of edges exiting the same node
@@ -121,6 +125,8 @@ def g_f_2lp(S,
             b_.append(0)
 
 
+    sys.stderr.write('Restricting number of edges entering and leaving '
+        'node to 1.\n')
     for k in xrange(len(F)):
         if len(F[k]) >= J:
             # if number of nodes in frame is >= to the number of paths, each
@@ -150,6 +156,7 @@ def g_f_2lp(S,
     A_n_cols=N_nodes*N_nodes
     A_n_rows=len(A_)
     if (opt['calc_mean']):
+        sys.stderr.write('Calculating mean constraints.\n')
         for k in xrange(len(F)):
             for i in F[k]:
                 am1_=cvx.spmatrix([],[],[],(N_nodes*N_nodes+N_nodes+len(F),1),'d')
@@ -187,6 +194,8 @@ def g_f_2lp(S,
     G_y=[]
     G_n_cols=len(G_)+2*N_nodes*N_nodes
     if (opt['min_mean_dev']):
+        sys.stderr.write('Calculating constraints that minimize mean '
+            'deviation.\n')
         if (opt['calc_mean'] != 1):
             raise Exception('To use min_mean_dev, calc_mean must also be 1')
         for k in xrange(len(F)):
@@ -216,12 +225,15 @@ def g_f_2lp(S,
     #    # Unflatten
     #    A_[i].size=(N_nodes,N_nodes)
     #    A_idx+=1
+    sys.stderr.write('Building equality contraint matrix.\n')
     for i in xrange(len(A_)):
         # store transpose (see LP definition)
         A[i,:(N_nodes*N_nodes)]=A_[i]
         A_idx+=1
 
     if (opt['calc_mean']):
+        sys.stderr.write('Building equality contraint matrix with mean '
+                'contraints.\n')
         for i in xrange(len(A_mean)):
             A[A_idx,:(N_nodes*N_nodes+N_nodes+len(F))]=A_mean[i].T
             A_idx+=1
@@ -231,12 +243,13 @@ def g_f_2lp(S,
 
     # allocate inequality constraint matrix, including space for the constraints
     # on the variable (min 0, max 1)
+    sys.stderr.write('Building inequality contraint matrix.\n')
     G=cvx.spmatrix([],[],[],(G_n_cols,A_n_cols),'d')
     G_idx=0
     for i in xrange(len(G_)):
         G_[i].size=(N_nodes*N_nodes,1)
         G[i,:(N_nodes*N_nodes)]=G_[i].T
-        G_[i].size=(N_nodes,N_nodes)
+#        G_[i].size=(N_nodes,N_nodes)
         G_idx+=1
     for n in xrange(N_nodes*N_nodes):
         G[len(G_)+n,n]=1
@@ -248,6 +261,8 @@ def g_f_2lp(S,
         h_.append(0)
 
     if (opt['min_mean_dev']):
+        sys.stderr.write('Building equality contraint matrix with mean '
+                'deviation minimizing contstraints.\n')
         for i in xrange(len(G_y)):
             G[G_idx,:(N_nodes*N_nodes+N_nodes+len(F)+len(F))]=G_y[i].T
             G_idx+=1
@@ -263,9 +278,9 @@ def g_f_2lp(S,
     d['A']=A
     d['A_']=A_
     d['b']=b
-    d['b_']=b_
+#    d['b_']=b_
     d['G']=G
-    d['G_']=G_
+#    d['G_']=G_
     d['h']=h
-    d['h_']=h_
+#    d['h_']=h_
     return d
