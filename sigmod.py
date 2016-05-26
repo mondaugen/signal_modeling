@@ -289,13 +289,19 @@ def pca_ne(X,mode='cov'):
     Returns:
 
     A:
-        The principal components of X.
+        The principal components of X. This is a matrix of size (PxN) and is N
+        realizations of P principal components. The first PCs are in the first
+        row and the last in the last row.
+
     """
     if mode == 'cov':
         S=np.cov(X)
-    else:
+    elif mode == 'corr':
         S=np.corrcoef(X)
+    else:
+        raise Exception('Bad mode %s.\n' % (mode,))
     (l,V)=np.linalg.eig(S)
     li=np.flipud(l.argsort())
     V=V[:,li]
-    
+    A=np.inner(V.T,X.T)
+    return A
