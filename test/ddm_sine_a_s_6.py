@@ -20,7 +20,7 @@ k=0
 w_s=np.sum(w)
 while ((h+M) <= N):
     sys.stderr.write('%d / %d\n' % (h,N))
-    a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,6,4,1,M/2))
+    a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,8,4,0.1,M/2))
     x_=x[h:(h+M)]
     Y[:,k]=np.fft.fft(x_*w)/w_s
     for a_ in a[-1]:

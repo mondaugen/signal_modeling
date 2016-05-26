@@ -23,6 +23,10 @@ sp.T_60=.75;
 % Time in seconds to when attack function reaches maximum
 sp.T_max=0.1;
 sp.A_method='FOF';
+% Amplitude coefficient of FM
+sp.A_fm=sp.f0*2^(1/12)-sp.f0;
+% Frequency coefficient of FM
+sp.f_fm=2;
 
 % Check what fields are present and replace with defaults
 for fn=fieldnames(sp)'
@@ -58,9 +62,5 @@ case 'AR1'
 otherwise
     error('Bad A_method');
 end
-% Amplitude coefficient of FM
-opt.A_fm=opt.f0*2^(1/12)-opt.f0;
-% Frequency coefficient of FM
-opt.f_fm=2;
 x=A.*cos(2*pi*(opt.f0*t-opt.A_fm/(2*pi*opt.f_fm)*cos(2*pi*opt.f_fm*t+opt.phi_fm))*opt.k_B+opt.phi);
 x=sum(x,2);

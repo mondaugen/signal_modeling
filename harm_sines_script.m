@@ -1,4 +1,4 @@
-N_ARGS=11;
+N_ARGS=13;
 argv=argv();
 if length(argv) != N_ARGS
     fprintf(stderr,
@@ -13,10 +13,13 @@ if length(argv) != N_ARGS
     'initial-fm-phase\n'...
     't-60dB\n'...
     'attack-max-time\n'...
-    'attack-method {FOF,AR1}\n']);
+    'attack-method {FOF,AR1}\n'...
+    'amplitude-fm\n'...
+    'frequency-fm\n']);
     exit(-1);
 end
 
+opt=struct();
 % Sampling rate in Hz
 opt.Fs=str2num(argv{1});
 % Length of signal
@@ -40,5 +43,7 @@ opt.T_60=str2num(argv{9});
 % Time in seconds to when attack function reaches maximum
 opt.T_max=str2num(argv{10});
 opt.A_method=argv{11};
-x=harm_sines(opt)
-fwrite(stdout,x,'float64')
+opt.A_fm=str2num(argv{12});
+opt.f_fm=str2num(argv{13});
+x=harm_sines(opt);
+fwrite(stdout,x,'float64');
