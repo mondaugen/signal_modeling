@@ -271,3 +271,31 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
         except ValueError:
             pass
     return result
+
+def pca_ne(X,mode='cov'):
+    """
+    Calculate the principal components of X.
+
+    X:
+        A (PxN) matrix of N observations on P variables (this is the transpose
+        of the X in pca_ne.m).
+    mode:
+        Can be
+        'cov':
+            Uses the covariance matrix to compute PCs.
+        'corr':
+            Uses the correlation matrix to compute PCs.
+
+    Returns:
+
+    A:
+        The principal components of X.
+    """
+    if mode == 'cov':
+        S=np.cov(X)
+    else:
+        S=np.corrcoef(X)
+    (l,V)=np.linalg.eig(S)
+    li=np.flipud(l.argsort())
+    V=V[:,li]
+    
