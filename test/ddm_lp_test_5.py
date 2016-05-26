@@ -17,19 +17,19 @@ N_f=6
 if (len(sys.argv) >= 2):
     N_f=int(sys.argv[1])
 # Width of frequency block in bins
-L_k = 50.
+L_k = 25
 # Hop size of frequency block
-H_k = 37.5
+H_k = 37.5/2.
 
 R_B=0.65
-H=256
-with open('tmp/peace','r') as f:
+H=128
+with open('/tmp/ths.f64','r') as f:
     x=np.fromfile(f)
 N=len(x)
 n=np.arange(N)
 a=[]
 h=0
-M=1024
+M=512
 Y=np.zeros((M,(N-M)/H+1)).astype('complex_')
 m=np.arange(M)
 # Windows for DDM
@@ -47,7 +47,7 @@ def _cost_func(a,b):
 
 while ((h+M) <= N):
     sys.stderr.write('%d / %d\n' % (h,N))
-    a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,6,3,0.01,M/2))
+    a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,4,2,0.01,M/2))
     x_=x[h:(h+M)]
     Y[:,k]=np.fft.fft(x_*w)/w_s
     k+=1
@@ -184,19 +184,23 @@ for k_a in xrange(0,len(a)-N_f+1):
     # compute number of paths.
     npaths=sum([len(paths_) for paths_ in paths[k_a]])
     # Allocate matrix of observations
+#    X=np.ndarray((N_f*2,npaths))
     X=np.ndarray((N_f,npaths))
     col=0
     for s_a,paths_ in zip(S_a[k_a],paths[k_a]):
         for path in paths_:
             for k in xrange(N_f):
                 a_=s_a[path[k]].value
-                X[k,col]=np.imag(a_[2])/np.imag(a_[1])
+#                X[k,col]=np.imag(a_[2])/np.imag(a_[1])
+                X[k,col]=np.real(a_[1])/np.imag(a_[1])
+#                X[k*2,col]=np.real(a_[1])#/np.real(a_[0])
+#                X[k*2+1,col]=np.imag(a_[2])/np.imag(a_[1])
             col+=1
     A=sm.pca_ne(X)
     plt.scatter(k_a*np.ones(npaths),A[0,:],c='b')
 
 # To prove it works, we plot the paths
-plt.figure(2)
+plt.figure(3)
 for k_a in xrange(0,len(a)-N_f+1,3):
     for s_a,paths_ in zip(S_a[k_a],paths[k_a]):
         for path in paths_:
