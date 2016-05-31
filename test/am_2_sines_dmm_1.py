@@ -34,21 +34,32 @@ dw_=((2.*np.pi/N_w*wc[1:]*np.arange(1,len(wc))
     *np.sin(np.pi*2./N_w*np.outer(np.arange(1,len(wc)),n_w)))
 dw=np.sum(dw_,0)
 a=[]
+b=[]
 for h in np.arange(0,N-N_w,H):
 #    a.append(sm.ddm_p2_3_3(x[h:h+2*H+N_w],H,w,dw,4))
     a.append(sm.ddm_p2_1_3(x[h:(h+N_w)],w,dw))
+    X_=np.fft.fft(x[h:(h+N_w)]*w)/sum(w)
+    b_=np.abs(X_).max()
+    b.append(b_)
 h_i=0
 h=0
 #x_a=np.zeros(N).astype('complex_')
 x_a=np.zeros(N)
 x_f=np.zeros(N)
+x_a_l=np.zeros(N)
+b_last=0
 for h in np.arange(0,N-N_w,H):
     a_=a[h_i]
+    b_=b[h_i]
 #    x_a[h:h+N_w]+=np.exp(a_[0]+a_[1]*n_w+a_[2]*n_w**2.)*w/2.
     x_a[h:h+N_w]+=np.exp(np.real(a_[0]+a_[1]*n_w+a_[2]*n_w**2.))*w/2.
+#    plt.plot((n_w+h)/Fs,np.exp(np.real(a_[0]+a_[1]*n_w+a_[2]*n_w**2.)),c='g')
     x_f[h:h+H]=np.imag(a_[1]+2.*a_[2]*n_w[:H])/(np.pi*2.)*Fs
+    x_a_l[h+H/2:h+H+H/2]=b_last+(b_-b_last)*n_w[:H]/float(H)
+    b_last=b_
     h_i+=1
 plt.plot(t,x_a,c='k')
+plt.plot(t,x_a_l,c='r')
 plt.figure(2)
 plt.plot(t,x_f,c='k')
 plt.show()
