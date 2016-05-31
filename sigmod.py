@@ -150,7 +150,10 @@ def ddm_p2_3_3(x,H,w,dw,k_de):
                 ]
             ]
     a=np.linalg.lstsq(A,-b)[0]
-    return a
+    gam=np.exp(a[0]*nx0+a[1]*nx0**2.)
+    a0=(np.log(np.inner(x0,np.conj(gam)))
+        -np.log(np.inner(gam,np.conj(gam))))
+    return np.vstack((a0,a))
 
 def ddm_p2_1_3(x,w,dw):
     """

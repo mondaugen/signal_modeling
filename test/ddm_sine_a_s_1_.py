@@ -17,8 +17,8 @@ a=[]
 h=0
 M=512
 m=np.arange(M)
-w=0.5+0.5*np.cos(2.*np.pi*(m-M/2)/M)
-dw=-np.pi/M*np.sin(2.*np.pi*(m-M/2)/M)
+w=0.5-0.5*np.cos(2.*np.pi*m/M)
+dw=np.pi/M*np.sin(2.*np.pi*m/M)
 while ((h+M) <= N):
     a.append(sm.ddm_p2_1_3(x[h:(h+M)],w,dw))
     y[h:h+M]+=np.exp(a[-1][0]+a[-1][1]*m+a[-1][2]*m**2.)*w/2.
