@@ -174,13 +174,12 @@ def ddm_p2_1_3(x,w,dw):
     N_w=len(w)
     Ncx=(N_x-1)/2
     Ncw=(N_w-1)/2
-    nx0=np.arange(N_x)
+    nx0=np.arange(N_w)
     x0=x[nx0]
-    # FFT are zero padded by one assuming N_w has odd length.
     Xp1w=np.fft.fft(x0*w)
     Xp2w=np.fft.fft(2.*nx0*x0*w)
     Xdw_=np.fft.fft(x0*dw)
-    Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_x)+Xdw_
+    Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_w)+Xdw_
     kma0=np.abs(Xp1w).argmax()
     A=np.c_[
             np.r_[
@@ -197,7 +196,7 @@ def ddm_p2_1_3(x,w,dw):
             ]
     a=np.linalg.lstsq(A,-b)[0]
     gam=np.exp(a[0]*nx0+a[1]*nx0**2.)
-    a0=(np.log(np.inner(x,np.conj(gam)))
+    a0=(np.log(np.inner(x0,np.conj(gam)))
         -np.log(np.inner(gam,np.conj(gam))))
     return np.vstack((a0,a))
 
@@ -216,7 +215,7 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
     b:
         the size of the bands (in samples) in which to search for maxima
     o:
-        the overlap of the bands (in samples)
+        the hopsize between bands (in samples)
     th:
         the minimum amplitude of a true peak (peaks lower than this are not
         considered)
@@ -233,7 +232,7 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
     N_w=len(w)
     Ncx=(N_x-1)/2
     Ncw=(N_w-1)/2
-    nx0=np.arange(N_x)
+    nx0=np.arange(N_w)
     x0=x[nx0]
     # FFT are zero padded by one assuming N_w has odd length.
     Xp1w=np.fft.fft(x0*w)
@@ -265,7 +264,7 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
         try:
             a=np.linalg.lstsq(A,-c)[0]
             gam=np.exp(a[0]*nx0+a[1]*nx0**2.)
-            a0=(np.log(np.inner(x,np.conj(gam)))
+            a0=(np.log(np.inner(x0,np.conj(gam)))
                 -np.log(np.inner(gam,np.conj(gam))))
             result.append(np.vstack((a0,a)))
         except ValueError:
