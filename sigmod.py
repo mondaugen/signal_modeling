@@ -203,7 +203,7 @@ def ddm_p2_1_3(x,w,dw):
         -np.log(np.inner(gam,np.conj(gam))))
     return np.vstack((a0,a))
 
-def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
+def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1):
     """
     Compute parameters of 2nd order polynomial using 2 bins surrounding the
     maximum of the STFT at the centre of signal x.
@@ -214,43 +214,52 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M):
     w:  
         the analysis window.
     dw: 
-        the derivative of the analysis window
+        the derivative of the analysis window.
     b:
-        the size of the bands (in samples) in which to search for maxima
+        the size of the bands (in samples) in which to search for maxima.
     o:
-        the hopsize between bands (in samples)
+        the hopsize between bands (in samples).
     th:
         the minimum amplitude of a true peak (peaks lower than this are not
-        considered)
+        considered).
     M:
         the maximum index to consider. Can be used to only consider half the
         spectrum for example.
+    i:
+        If a maximum is found, the band in which maxima are searched is not
+        shifted by o but rather set to begin at the index of the last maximum +
+        some number of ignored bins, given by i (default 1).
 
     Returns 
 
     a:
-        a vector containing the estimated parameters
+        a vector containing the estimated parameters.
     """
-    N_x=len(x)
     N_w=len(w)
-    Ncx=(N_x-1)/2
-    Ncw=(N_w-1)/2
     nx0=np.arange(N_w)
     x0=x[nx0]
     # FFT are zero padded by one assuming N_w has odd length.
     Xp1w=np.fft.fft(x0*w)
     Xp2w=np.fft.fft(2.*nx0*x0*w)
     Xdw_=np.fft.fft(x0*dw)
-    Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_x)+Xdw_
+    Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_w)+Xdw_
     b_=0
 #    wb=np.hanning(b)
     result=[]
     while (b_ < M):
-        kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
+        tmp_=np.abs(Xp1w)[b_:b_+b]
+        # Indices of values greater than their neighbours
+        kma=np.where(np.r_[False,tmp_[1:]>tmp_[:-1]]
+                & np.r_[tmp_[:-1]>tmp_[1:],False])[0]
+#        kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
+        if len(kma) <= 0:
+            b_+=o
+            continue
+        kma0=kma[tmp_[kma].argmax()]+b_
         if (np.abs(Xp1w)[kma0] < th):
             b_+=o
             continue
-        b_=kma0+o
+        b_=kma0+i
         A=np.c_[
                 np.r_[
                     Xp1w[(kma0)-1:(kma0+2)],
