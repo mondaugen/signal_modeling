@@ -573,6 +573,21 @@ def plot_spv(S,F,q,C_cxn,show=True,fignum=0):
     if (show):
         plt.show()
 
+def sol_x_from_spv(S,F,q,C_cxn):
+    """
+    Get a substitute for the LP solution from the solution via Viterbi.
+    """
+    K=len(S.keys())
+    x=cvx.matrix(0,(len(S.keys()**2),1))
+    T=len(F)
+    for t in xrange(T):
+        for f in F[t]:
+            plt.scatter(t,S[f].value,c='k')
+    for t in xrange(T-1):
+        for j,k in zip(C_cxn[t][q[t]][0],C_cxn[t][q[t]][1]):
+            plt.plot([t,t+1],[S[F[t][j]].value,S[F[t+1][k]].value],'g')
+
+
 def plot_hsrpc_test(Z,D,show=True,fignum=0):
     """
     Using dictionary Z loaded from file, plot the different sources in different
