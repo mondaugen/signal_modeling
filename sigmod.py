@@ -12,11 +12,14 @@ def lextrem(a,comp='max'):
     ma=a[mai]
     return (ma,mai)
 
-def lextrem_win(x,b,o,i,th,ar,M):
+def lextrem_win(x,b,o,i,th,ar,M,bi=0):
     """
     Search in windows of size b every hop o for values exceeding th and that are
     whose dB ratio with the average of the minimum values in the frame is
     greater than ar.
+
+    x:
+        the signal to search for maxima in.
 
     b:
         the size of the bands (in samples) in which to search for maxima.
@@ -37,6 +40,8 @@ def lextrem_win(x,b,o,i,th,ar,M):
     M:
         the maximum index to consider. Can be used to only consider half the
         spectrum for example.
+    bi:
+        The initial index to start on (default 0).
 
 
     Returns:
@@ -46,7 +51,7 @@ def lextrem_win(x,b,o,i,th,ar,M):
 
     """
 
-    b_=0
+    b_=bi
     ks=[]
     if (o == 0):
         raise Exception('Hopsize cannot be 0.')

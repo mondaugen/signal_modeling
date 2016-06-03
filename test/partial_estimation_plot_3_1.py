@@ -16,14 +16,19 @@ import ptpath_test as ppt
 # In this implementation, the path search can skip over frames containing no
 # nodes
 
-# Paths whose cost/length exceed the mean cost/length ratio are discarded
 
 # Width of frequency block in bins
-L_k = 20
+L_k = 12
 # Hop size of frequency block in bins
-H_k = 5
+H_k = 4
 # Bottom of first frequency block in bins
 I_k = 5
+# The number of bins to ignore after a maximum
+i_k = 3
+# The threshold of a true peak
+th_k=1e-4
+# The ratio of peak to its local minima (in dB)
+ar_k=15
 
 # This scales the minimum number of nodes in one frame of a block, and sets the
 # number of paths to be discovered by the path searching algorithm
@@ -183,18 +188,37 @@ K_a=[]
 K_a_e=[]
 # The nodes that have not been classified into a path
 a_rem=[[True for a__ in a_] for a_ in a]
-# Number of hops in frequency over the frames
-f_hops=np.arange(I_k,M/2.-L_k,H_k)
-N_f_hops=len(f_hops)
+## Number of hops in frequency over the frames
+#f_hops=np.arange(I_k,M/2.-L_k,H_k)
+#N_f_hops=len(f_hops)
+
+# Find local maxima in initial spectrum to set f_hops
+I_y_s=0
+I_y_e=3
+Y_ini=np.sum(np.abs(Y[:,I_y_s:I_y_e]),1)*(1./(I_y_e-I_y_s))
+print Y_ini
+f_hops=sm.lextrem_win(Y_ini,L_k,H_k,i_k,th_k,ar_k,M/2,I_k)
+
 
 # iterate over bands
+print f_hops
 for h_k in f_hops:
     # Find the frame where the peak power exceeds a threshold
     k_a=0
     done=False
+    # range of bins to consider
+    r_h_k_l=h_k-L_k/2
+    # if less than 0, set 0
+    if (r_h_k_l < 0):
+        r_h_k_l=0
+    r_h_k_r=h_k+L_k/2+1
+    # if greater than max bin considered, set max bin considered
+    if (r_h_k_r > M/2):
+        r_h_k_r=M/2
+    r_h_k=np.arange(r_h_k_l,r_h_k_r)
     while((not done) and (k_a < Y.shape[1])):
-        print (20.*np.log10(np.abs(Y[h_k:h_k+L_k,k_a]))).max()
-        if (20.*np.log10(np.abs(Y[h_k:h_k+L_k,k_a]))).max() > a_s_db:
+        print (20.*np.log10(np.abs(Y[r_h_k,k_a]))).max()
+        if (20.*np.log10(np.abs(Y[:,k_a]))).max() > a_s_db:
             done=True
         else:
             k_a+=1
@@ -206,16 +230,16 @@ for h_k in f_hops:
     done=False
     # Find the first frame from the end where peak power exceeds a threshold
     while((not done) and (k_a_e > k_a)):
-        if (20.*np.log10(np.abs(Y[h_k:h_k+L_k,k_a_e]))).max() > a_e_db:
+        if (20.*np.log10(np.abs(Y[r_h_k,k_a_e]))).max() > a_e_db:
             done=True
         else:
             k_a_e-=1
     print k_a_e
     if ((k_a_e - k_a) < 2):
         continue
-    print h_k
-    print h_k+L_k
-    S,F=tf_block(a,k_a,k_a_e-k_a,h_k,L_k,M,a_rem)
+    print r_h_k_l
+    print r_h_k_r
+    S,F=tf_block(a,k_a,k_a_e-k_a,r_h_k_l,r_h_k_r-r_h_k_l,M,a_rem)
     print 'number of nodes: %d' % (len(S.keys()),)
     F=filter(len,F)
     if (len(F) < 3):
@@ -264,7 +288,8 @@ mc/=len(solc_a)
 
 for s_a,f_a,x,k_a,k_a_e,cq_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q):
     # only plot if cost/length ratio <= the mean cost/length ratio
-    if (cq_ <= mc):
+#    if (cq_ <= mc):
+    if (True):
         N_nodes=len(s_a.keys())
         for n in xrange(len(x)):
             src=n%N_nodes
@@ -282,6 +307,8 @@ for s_a,f_a,x,k_a,k_a_e,cq_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q):
 #    plt.plot([0,Y.shape[1]],[h_k+L_k,h_k+L_k],'r')
 
 plt.imshow(20.*np.log10(np.abs(Y)),origin='lower',aspect='auto',interpolation='nearest')
+
+plt.plot(np.zeros(len(f_hops)),f_hops,'bo')
 
 # plot path cost versus length
 plt.figure(2)
