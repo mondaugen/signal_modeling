@@ -531,16 +531,30 @@ def shortest_paths_cost_lattice(S,F,J,cost_func=LPNode_euclidean_dist):
 def shortest_paths_viterbi(C,C_cxn,big_cost=1000000):
     """
     Use viterbi algorithm to find shortest connected path through trellis C.
+
+    Returns
+
+        q:
+            The index for each frame that is on the path.
+        c_tot:
+            The total cost of taking this route
     """
     T=len(C)
     C_lens=tuple([len(c) for c in C])
-    de=np.ndarray(1,dtype=string.join(['%dfloat64' for _ in
-        xrange(T)],',')%C_lens)[0]
-    ps=np.ndarray(1,dtype=string.join(['%dint64' for _ in
-        xrange(T)],',')%C_lens)[0]
+    de_dtype=string.join(['%dfloat64' for _ in xrange(T)],',')%C_lens
+#    print de_dtype
+    de=np.ndarray(1,dtype=de_dtype)[0]
+    ps_dtype=string.join(['%dint64' for _ in xrange(T)],',')%C_lens
+#    print ps_dtype
+    ps=np.ndarray(1,dtype=ps_dtype)[0]
     q=np.ndarray(T,'int64')
     for j in xrange(C_lens[0]):
-        de[0][j]=C[0][j]
+        if de[0].size == 1:
+            # if length of de[0] is 1, then we can't index
+            # in this case j only takes on the value 0
+            de[0]=C[0][j]
+        else:
+            de[0][j]=C[0][j]
     ps[0]=0
 
     for t in xrange(1,T):
@@ -552,14 +566,29 @@ def shortest_paths_viterbi(C,C_cxn,big_cost=1000000):
                     # if the node indices don't match, give a prohibitively high
                     # cost
                     cst_[i]+=big_cost
-                cst_[i]+=de[t-1][i]+C[t][j]
-            ps[t][j]=np.argmin(cst_)
-            de[t][j]=cst_[ps[t][j]]
+                if (de[t-1].size==1):
+                    cst_[i]+=de[t-1]+C[t][j]
+                else:
+                    cst_[i]+=de[t-1][i]+C[t][j]
+            if (ps[t].size==1):
+                ps[t]=np.argmin(cst_)
+            else:
+                ps[t][j]=np.argmin(cst_)
+            if (de[t].size==1):
+                # if length of de[t] is 1, then we can't index
+                # in this case j only takes on the value 0
+                de[t]=cst_[ps[t]]
+            else:
+                de[t][j]=cst_[ps[t][j]]
 
     q[T-1]=np.argmin(de[T-1])
+    c_tot=np.min(de[T-1])
     for t in (T-2-np.arange(T-1)):
-        q[t]=ps[t+1][q[t+1]]
-    return q
+        if (ps[t+1].size==1):
+            q[t]=ps[t+1]
+        else:
+            q[t]=ps[t+1][q[t+1]]
+    return (q,c_tot)
 
 def plot_spv(S,F,q,C_cxn,show=True,fignum=0):
     plt.figure(fignum)
@@ -578,15 +607,25 @@ def sol_x_from_spv(S,F,q,C_cxn):
     Get a substitute for the LP solution from the solution via Viterbi.
     """
     K=len(S.keys())
-    x=cvx.matrix(0,(len(S.keys()**2),1))
+    x=cvx.matrix(0,(K*K,1),tc='d')
     T=len(F)
-    for t in xrange(T):
-        for f in F[t]:
-            plt.scatter(t,S[f].value,c='k')
     for t in xrange(T-1):
         for j,k in zip(C_cxn[t][q[t]][0],C_cxn[t][q[t]][1]):
-            plt.plot([t,t+1],[S[F[t][j]].value,S[F[t+1][k]].value],'g')
+            x[F[t][j] + K*F[t+1][k]]=1.
+    return x
 
+def sol_S_from_spv(S,F,q,C_cxn):
+    """
+    Get the indices in S that are the solution from viterbi algorithm.
+    """
+    K=len(S.keys())
+    T=len(F)
+    idx=set()
+    for t in xrange(T-1):
+        for j,k in zip(C_cxn[t][q[t]][0],C_cxn[t][q[t]][1]):
+            idx.add(F[t][j])
+            idx.add(F[t+1][k])
+    return list(idx)
 
 def plot_hsrpc_test(Z,D,show=True,fignum=0):
     """

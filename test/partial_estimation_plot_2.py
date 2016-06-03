@@ -12,13 +12,14 @@ import ptpath_test as ppt
 # Find first frame where peak exceeds threshold
 # Find last frame where peak exceeds threshold
 # Find paths that go from this frame to the end frame.
-# Unfortunately in this implementation, paths cannot skip over frames containing
-# no nodes.
+
+# In this implementation, the path search can skip over frames containing no
+# nodes
 
 # Width of frequency block in bins
-L_k = 16
+L_k = 32
 # Hop size of frequency block in bins
-H_k = 4
+H_k = 24
 # Bottom of first frequency block in bins
 I_k = 5
 
@@ -28,7 +29,7 @@ R_B=1
 # Hop size in samples
 H=1024
 with open('tmp/ac_gtr_a3_op_sr16k.f64','r') as f:
-    x=np.fromfile(f)
+    x=np.fromfile(f)[:12000]
 # Sample rate of file
 Fs=16000
 # Length of the file
@@ -70,11 +71,13 @@ b_ddm=np.round(b_ddm_hz/Fs*M)
 o_ddm=np.round(o_ddm_hz/Fs*M)
 print 'b_ddm, o_ddm = %d %d' %(b_ddm,o_ddm)
 # threshold of value seen as valid
-th_ddm=0.0001
+th_ddm=0.01
 # Highest bin to consider
 M_ddm=M/2
 # number of bins after last maximum to skip
 i_ddm=3
+# ratio between local maximum and local minimum
+ar_ddm=10
 
 def _cost_func(a,b):
     # The cost of predicting the frequency of b using the parameters of a
@@ -88,7 +91,7 @@ def _cost_func(a,b):
 while ((h+M) <= N):
     sys.stderr.write('%d / %d\n' % (h,N))
     a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,
-        b_ddm,o_ddm,th_ddm,M_ddm,i_ddm))
+        b_ddm,o_ddm,th_ddm,M_ddm,i_ddm,ar_ddm))
     x_=x[h:(h+M)]
     Y[:,k]=np.fft.fft(x_*w)/w_s
     k+=1
@@ -201,7 +204,7 @@ for h_k in f_hops:
 #    if (J_min > f_min):
 #        J_min=f_min
     J_min=1
-    print 'number of nodes: %d' % (len(S.keys()),)
+    print 'number of nodes: %d' % (N_nodes),)
     print 'bounds on num nodes in frame: min: %d, max: %d' % (f_min,f_max)
     C,C_cxn=ppt.shortest_paths_cost_lattice(S,F,J_min,_cost_func)
     q=ppt.shortest_paths_viterbi(C,C_cxn)
@@ -216,9 +219,10 @@ for h_k in f_hops:
 for s_a,f_a,x,k_a,k_a_e in zip(S_a,F_a,solx_a,K_a,K_a_e):
     N_nodes=len(s_a.keys())
     for n in xrange(len(x)):
+        src=n%N_nodes
+        dst=int(n/N_nodes)
+        plt.scatter(s_a[src].frame_num+k_a,np.imag(s_a[src].value[1])/(2.*np.pi)*M,'b')
         if x[n] > 0.5:
-            src=n%N_nodes
-            dst=int(n/N_nodes)
             n0=s_a[src].frame_num+k_a
             n1=s_a[dst].frame_num+k_a
             k0=np.imag(s_a[src].value[1])/(2.*np.pi)*M

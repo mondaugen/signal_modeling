@@ -12,6 +12,67 @@ def lextrem(a,comp='max'):
     ma=a[mai]
     return (ma,mai)
 
+def lextrem_win(x,b,o,i,th,ar,M):
+    """
+    Search in windows of size b every hop o for values exceeding th and that are
+    whose dB ratio with the average of the minimum values in the frame is
+    greater than ar.
+
+    b:
+        the size of the bands (in samples) in which to search for maxima.
+    o:
+        the hopsize between bands (in samples).
+    th:
+        the minimum amplitude of a true peak (peaks lower than this are not
+        considered).
+    i:
+        If a maximum is found, the band in which maxima are searched is not
+        shifted by o but rather set to begin at the index of the last maximum +
+        some number of ignored bins, given by i (default 1).
+    ar:
+        The threshold ratio 20*log10(max_peak/avg_min_peak). If over this value,
+        the peak is considered, otherwise it is not. If the value is less than 0
+        the peak is always considered (default -1). For example, if ar=40, the
+        max_peak has to be 100 times that of the avg_min_peak.
+    M:
+        the maximum index to consider. Can be used to only consider half the
+        spectrum for example.
+
+
+    Returns:
+
+    ks:
+        Indices of local maxima.
+
+    """
+
+    b_=0
+    ks=[]
+    if (o == 0):
+        raise Exception('Hopsize cannot be 0.')
+    while (b_ < M):
+        tmp_=x[b_:b_+b]
+        # Indices of values greater than their neighbours
+        kma=np.where(np.r_[False,tmp_[1:]>tmp_[:-1]]
+                & np.r_[tmp_[:-1]>tmp_[1:],False])[0]
+        if len(kma) <= 0:
+            b_+=o
+            continue
+        kma0=kma[tmp_[kma].argmax()]+b_
+        if (x[kma0] < th):
+            b_+=o
+            continue
+        if ar > 0.:
+            l_min=x[b_:kma0].min()
+            r_min=x[kma0+1:b_+b].min()
+            alr_min=0.5*(l_min+r_min)
+            if (20.*np.log10(x[kma0]/alr_min)<ar):
+                b_+=o
+                continue
+        ks.append(kma0)
+        b_=kma0+i
+    return ks
+
 #def ddm_p2_3_3(x,H,w,dw,k_de):
 #    """
 #    Compute parameters of 2nd order polynomial using 8 bins surrounding the
@@ -203,7 +264,7 @@ def ddm_p2_1_3(x,w,dw):
         -np.log(np.inner(gam,np.conj(gam))))
     return np.vstack((a0,a))
 
-def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1):
+def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1,ar=-1.):
     """
     Compute parameters of 2nd order polynomial using 2 bins surrounding the
     maximum of the STFT at the centre of signal x.
@@ -229,6 +290,11 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1):
         If a maximum is found, the band in which maxima are searched is not
         shifted by o but rather set to begin at the index of the last maximum +
         some number of ignored bins, given by i (default 1).
+    ar:
+        The threshold ratio 20*log10(max_peak/avg_min_peak). If over this value,
+        the peak is considered, otherwise it is not. If the value is less than 0
+        the peak is always considered (default -1). For example, if ar=40, the
+        max_peak has to be 100 times that of the avg_min_peak.
 
     Returns 
 
@@ -243,23 +309,31 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1):
     Xp2w=np.fft.fft(2.*nx0*x0*w)
     Xdw_=np.fft.fft(x0*dw)
     Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_w)+Xdw_
-    b_=0
-#    wb=np.hanning(b)
     result=[]
-    while (b_ < M):
-        tmp_=np.abs(Xp1w)[b_:b_+b]
-        # Indices of values greater than their neighbours
-        kma=np.where(np.r_[False,tmp_[1:]>tmp_[:-1]]
-                & np.r_[tmp_[:-1]>tmp_[1:],False])[0]
-#        kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
-        if len(kma) <= 0:
-            b_+=o
-            continue
-        kma0=kma[tmp_[kma].argmax()]+b_
-        if (np.abs(Xp1w)[kma0] < th):
-            b_+=o
-            continue
-        b_=kma0+i
+    ks = lextrem_win(np.abs(Xp1w),b,o,i,th,ar,M)
+    #b_=0
+    #while (b_ < M):
+    #    tmp_=np.abs(Xp1w)[b_:b_+b]
+    #    # Indices of values greater than their neighbours
+    #    kma=np.where(np.r_[False,tmp_[1:]>tmp_[:-1]]
+    #            & np.r_[tmp_[:-1]>tmp_[1:],False])[0]
+#   #     kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
+    #    if len(kma) <= 0:
+    #        b_+=o
+    #        continue
+    #    kma0=kma[tmp_[kma].argmax()]+b_
+    #    if (np.abs(Xp1w)[kma0] < th):
+    #        b_+=o
+    #        continue
+    #    if ar > 0.:
+    #        l_min=np.abs(Xp1w)[b_:kma0].min()
+    #        r_min=np.abs(Xp1w)[kma0+1:b_+b].min()
+    #        alr_min=0.5*(l_min+r_min)
+    #        if (20.*np.log10(np.abs(Xp1w)[kma0]/alr_min)<ar):
+    #            b_+=o
+    #            continue
+    #    b_=kma0+i
+    for kma0 in ks:
         A=np.c_[
                 np.r_[
                     Xp1w[(kma0)-1:(kma0+2)],
