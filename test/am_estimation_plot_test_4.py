@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 import sigmod as sm
 
 N=4096
-M=32000*4+N
+M=32000*1+N
 n=np.arange(N)
 Fs=16000
 H=512
 m=np.arange(M)
 # If the estimated values exceed these thresholds, they are considered erroneous
 # Cannot change more than a1_r_th dB / hop
-a1_r_th=10
+a1_r_th=30
 # Absolute minimum value of acknowledged partial
 th_db=-80 
 a_r_e=[]
@@ -23,7 +23,7 @@ o_ddm_hz=35.
 b_ddm=np.round(b_ddm_hz/Fs*N)
 o_ddm=np.round(o_ddm_hz/Fs*N)
 print 'b_ddm, o_ddm = %d %d' %(b_ddm,o_ddm)
-th_ddm=0.01
+th_ddm=0.001
 M_ddm=N/2
 i_ddm=4
 
@@ -31,8 +31,8 @@ i_ddm=4
 #out_fname='/tmp/ac_gtr_b3_gs4_sr16k_aprx.f64'
 #res_fname='/tmp/ac_gtr_b3_gs4_sr16k_res.f64'
 in_fname='tmp/flt_b4_sr16k.f64'
-out_fname='/tmp/ac_gtr_a3_op_sr16k_aprx.f64'
-res_fname='/tmp/ac_gtr_a3_op_sr16k_res.f64'
+out_fname='/tmp/flt_b4_sr16k_aprx.f64'
+res_fname='/tmp/flt_b4_sr16k_res.f64'
 #in_fname='tmp/close_guits_sr16k.f64'
 #out_fname='/tmp/close_guits_aprx.f64'
 #res_fname='/tmp/close_guits_res.f64'
