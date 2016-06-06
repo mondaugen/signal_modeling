@@ -33,14 +33,20 @@ for p in p_info:
         ax.plot(tpts,fpts,apts,c='g')
         tpts=np.array(tpts)
         ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='b')
-#        ax2.scatter(th_f[0],th_a[1])
+#        ax2.scatter(th_a[1],th_f[0])
+#        X.append([th_a[1],th_f[0]])
+        X.append([float(len(fpts)),th_a[1]/th_f[0]])
 #        X.append([len(fpts),1./th_f[0]])
-        X.append([len(fpts),1./th_f[0]])
+#        X.append([len(fpts),1./th_f[0]])
 
 
-A=sm.pca_ne(np.array(X).T,'cov')
+#A=sm.pca_ne(np.array(X).T,'cov')
 #ax2.scatter(A[0,:],A[1,:])
 X=np.array(X).T
+X[1,:]-=X[1,:].min()
+X[1,:]+=1e-3
+X[1,:]=np.log(X[1,:])
+print X
 ax2.scatter(X[0,:],X[1,:])
 
 plt.show()

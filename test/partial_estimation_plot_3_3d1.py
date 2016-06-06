@@ -29,13 +29,13 @@ L_k_C=0.5
 # Hop size of frequency block in bins
 H_k = 4
 # Bottom of first frequency block in bins
-I_k = 5
+I_k = 50
 # The number of bins to ignore after a maximum
 i_k = 2
 # The threshold of a true peak
 th_k=1e-5
 # The ratio of peak to its local minima (in dB)
-ar_k=3
+ar_k=10
 
 # A scalar adjusting the mean cost under which partial paths are set. A number
 # greater than 1 will let more paths under the threshold, a number less than 1
@@ -52,8 +52,8 @@ R_B=1
 H=512
 
 # Where to save partial trajectories
-fout='tmp/xylo_fs4_ac_gtr_a3_sr16k.pardata'
-with open('tmp/xylo_fs4_ac_gtr_a3_sr16k.f64','r') as f:
+fout='tmp/xylo_fs4_sr16k.pardat'
+with open('tmp/xylo_fs4_sr16k.f64','r') as f:
     x=np.fromfile(f)
 # Sample rate of file
 Fs=16000
@@ -341,7 +341,7 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
     else:
         # otherwise set its average frequency to -1 (ignored).
         _f_avg=-1.*len(q_)
-    f_avg.append(_f_avg/len(q_))
+    f_avg.append(float(_f_avg/len(q_)))
     da_avg.append(_da_avg/len(q_))
     p_info.append(_p_info)
 
@@ -366,11 +366,32 @@ for q_,c_ in zip(q_a,solc_a):
 mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
 plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj)
 
-for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
+#for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
+#    if (_f_avg>0.):
+#        plt.figure(3)
+#        plt.scatter([len(q_)],[1./_f_avg])
+#        plt.figure(4)
+#        plt.scatter([_f_avg],[_da_avg])
+a_starts=[]
+f_avg_calc=[]
+for q_,_f_avg,_da_avg,_p_info in zip(q_a,f_avg,da_avg,p_info):
     if (_f_avg>0.):
-        plt.figure(3)
-        plt.scatter([len(q_)],[1./_f_avg])
-        plt.figure(4)
-        plt.scatter([_f_avg],[_da_avg])
+        a_starts.append(np.real(_p_info[0][1][0]))
+        f_avg_calc.append(_f_avg)
+
+# Calculate line function for thresholding initial amplitude values of partials
+A_as_v_f=np.c_[np.ones(len(f_avg_calc)),f_avg_calc]
+b_as_v_f=np.array(a_starts)
+print A_as_v_f
+print b_as_v_f
+as_v_f_th=np.linalg.lstsq(A_as_v_f,b_as_v_f)[0]
+plt.plot([0,max(f_avg_calc)],[as_v_f_th[0],as_v_f_th[0]+as_v_f_th[1]*max(f_avg_calc)])
+
+for q_,_f_avg,_da_avg,_p_info in zip(q_a,f_avg,da_avg,p_info):
+    if (_f_avg>0.):
+        # only plot if initial amplitude above threshold
+        if((as_v_f_th[0]+as_v_f_th[1]*_f_avg) < np.real(_p_info[0][1][0])): 
+            plt.figure(3)
+            plt.scatter(_f_avg,np.real(_p_info[0][1][0]))
 
 plt.show()

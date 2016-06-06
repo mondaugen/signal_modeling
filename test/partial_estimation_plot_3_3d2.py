@@ -43,7 +43,7 @@ ar_k=3
 mc_C=1.2
 # the path length at which the path thresholding function reaches 1.01 times the
 # value mc*mc_C
-mc_x0=50
+mc_x0=55
 
 # This scales the minimum number of nodes in one frame of a block, and sets the
 # number of paths to be discovered by the path searching algorithm
@@ -52,8 +52,8 @@ R_B=1
 H=512
 
 # Where to save partial trajectories
-fout='tmp/xylo_fs4_ac_gtr_a3_sr16k.pardata'
-with open('tmp/xylo_fs4_ac_gtr_a3_sr16k.f64','r') as f:
+fout='tmp/ac_gtr_a3_op_sr16k.pardat'
+with open('tmp/ac_gtr_a3_op_sr16k.f64','r') as f:
     x=np.fromfile(f)
 # Sample rate of file
 Fs=16000
@@ -366,11 +366,9 @@ for q_,c_ in zip(q_a,solc_a):
 mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
 plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj)
 
-for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
+for q_,_f_avg,_da_avg,_p_info in zip(q_a,f_avg,da_avg,p_info):
     if (_f_avg>0.):
         plt.figure(3)
-        plt.scatter([len(q_)],[1./_f_avg])
-        plt.figure(4)
-        plt.scatter([_f_avg],[_da_avg])
+        plt.scatter(_f_avg,np.real(_p_info[1][0]))
 
 plt.show()
