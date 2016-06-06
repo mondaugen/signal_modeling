@@ -65,14 +65,14 @@ n=np.arange(N)
 a=[]
 # current hop
 h=0
+# Analysis window size and FFT size
 M=4096
 Y=np.zeros((M,(N-M)/H+1)).astype('complex_')
 m=np.arange(M)
 # Windows for DDM
-#w=0.5+0.5*np.cos(2.*np.pi*(m-M/2)/M)
-#dw=-np.pi/M*np.sin(2.*np.pi*(m-M/2)/M)
+# These are optimized minimum-blackman-4 coefficients that create a continuous
+# window (goes to zero at the end-points)
 wc=np.r_[0.358735,0.488305,0.141265,0.011695]
-#wc=np.r_[0.5,0.5]
 w_=((wc*np.power(-1,np.arange(len(wc))))[:,np.newaxis]
         *np.cos(np.pi*2./M*np.outer(np.arange(len(wc)),m)))
 w=np.sum(w_,0)
@@ -105,15 +105,11 @@ i_ddm=2
 ar_ddm=3
 
 def _cost_func(a,b):
-    # The cost of predicting the frequency of b using the parameters of a
-#    return (((np.imag(a.value[1]) + np.imag(a.value[2])*H) -
-#            np.imag(b.value[1]))**2.) + 1.
-#    return ((((np.imag(a.value[1]) + np.imag(a.value[2])*H) -
-#            np.imag(b.value[1]))**2.)*1. +
-#           ((np.real(a.value[0]) + np.real(a.value[1])*H +
-#               np.real(a.value[2])*H**2. - np.real(b.value[0]))**2.) + 1.)
+    # For partial tracking with partials relatively stable in frequency, we use
+    # Euclidean distance
     return (np.imag(a.value[1]) - np.imag(b.value[1]))**2. + 1.
 
+# Do analysis for time-frequency parameters
 while ((h+M) <= N):
     sys.stderr.write('%d / %d\n' % (h,N))
     a.append(sm.ddm_p2_1_3_b(x[h:(h+M)],w,dw,
@@ -151,9 +147,6 @@ def tf_block(a,k_f,N_f,h_k,l_k,M,a_rem):
     # Condense list
     a=a[k_f:k_f+N_f]
     a_rem=a_rem[k_f:k_f+N_f]
-#    a=[filter(lambda _a: ((np.imag(_a[1])/(2.*np.pi)*M >= h_k)
-#                and  (np.imag(_a[1])/(2.*np.pi)*M < (h_k+l_k))),
-#                a__) for a__ in a]
     def _in_freq_bounds(_a):
         return ((np.imag(_a[1])/(2.*np.pi)*M >= h_k)
                 and  (np.imag(_a[1])/(2.*np.pi)*M < (h_k+l_k)))
@@ -206,9 +199,6 @@ K_a=[]
 K_a_e=[]
 # The nodes that have not been classified into a path
 a_rem=[[True for a__ in a_] for a_ in a]
-## Number of hops in frequency over the frames
-#f_hops=np.arange(I_k,M/2.-L_k,H_k)
-#N_f_hops=len(f_hops)
 
 # Find local maxima in initial spectrum to set f_hops
 I_y_s=0
@@ -216,7 +206,6 @@ I_y_e=3
 Y_ini=np.sum(np.abs(Y[:,I_y_s:I_y_e]),1)*(1./(I_y_e-I_y_s))
 print Y_ini
 f_hops=sm.lextrem_win(Y_ini,L_k,H_k,i_k,th_k,ar_k,M/2,I_k)
-
 
 # iterate over bands
 print f_hops
@@ -264,16 +253,9 @@ for h_k in f_hops:
         continue
     f_min=min([len(f_) for f_ in F])
     f_max=max([len(f_) for f_ in F])
-#    if (f_min < 1):
-#        continue
     N_nodes=len(S.keys())
     J_min=int(f_min*R_B)
-#    #J_min=int(f_min*float(H_k)/float(L_k)
-#    #        *float(N_nodes)/(float(N_nodes_tot)/float(N_f_hops)))
-    if (J_min < 1):
-        J_min = 1
-    if (J_min > f_min):
-        J_min=f_min
+    # Just search for 1 path
     J_min=1
     print 'bounds on num nodes in frame: min: %d, max: %d' % (f_min,f_max)
     C,C_cxn=ppt.shortest_paths_cost_lattice(S,F,J_min,_cost_func)
@@ -281,17 +263,6 @@ for h_k in f_hops:
     solx_a.append(ppt.sol_x_from_spv(S,F,q,C_cxn))
     solc_a.append(c_tot)
     q_a.append(q)
-    # indices of solution
-    ## Indicate nodes used in this solution in order to not use them again
-    #idx_=ppt.sol_S_from_spv(S,F,q,C_cxn)
-    #for i_ in idx_:
-    #    for k_ in xrange(len(a)):
-    #        for l_ in xrange(len(a[k_])):
-    #            if (a[k_][l_] is S[i_].value):
-    #                a_rem[k_][l_]=False
-
-    #d=pp.g_f_2lp(S,F,J_min,_cost_func,{'calc_mean':0,'min_mean_dev':0})
-    #solx_a.append(solvers.lp(d['c'],d['G'],d['h'],d['A'],d['b'])['x'])
     K_a.append(k_a)
     K_a_e.append(k_a_e)
     S_a.append(S)
@@ -349,9 +320,6 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
 with open(fout,'w') as f:
     pickle.dump(p_info,f)
 
-#for h_k in f_hops:
-#    plt.plot([0,Y.shape[1]],[h_k,h_k],'g')
-#    plt.plot([0,Y.shape[1]],[h_k+L_k,h_k+L_k],'r')
 plt.imshow(20.*np.log10(np.abs(Y)),origin='lower',aspect='auto',interpolation='nearest')
 
 plt.plot(np.zeros(len(f_hops)),f_hops,'bo')
@@ -362,7 +330,6 @@ print len(q_a),len(solc_a)
 for q_,c_ in zip(q_a,solc_a):
     plt.plot(len(q_),c_/len(q_),'b.')
 
-#plt.plot([0,max([len(q_) for q_ in q_a])],[mc_adj,mc_adj])
 mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
 plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj)
 

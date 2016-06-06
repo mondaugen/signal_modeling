@@ -3,3 +3,4 @@ octave-workspace
 tmp
 *.DS_Store
 *.pyc
+snds*

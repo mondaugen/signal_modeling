@@ -6,13 +6,9 @@ import pickle
 import sigmod as sm
 import sklearn.mixture
 
-
 # Load partials from file 1
-with open('tmp/ac_gtr_a3_op_sr16k.pardat','r') as f:
-    p_info1=pickle.load(f)
-# Load partials from file 2
-with open('tmp/xylo_fs4_sr16k.pardat','r') as f:
-    p_info2=pickle.load(f)
+with open('tmp/xylo_fs4_ac_gtr_a3_sr16k.pardata','r') as f:
+    p_info=pickle.load(f)
 
 # Sample rate
 Fs=16000
@@ -32,11 +28,13 @@ fig4 = plt.figure(4)
 ax4= fig4.gca()
 fig5 = plt.figure(5)
 ax5  = fig5.gca()
+fig6 = plt.figure(6)
+ax6  = fig6.gca()
+fig7 = plt.figure(7)
+ax7  = fig7.gca()
 
 # Space to store combined partial paramters
 X=[]
-# Combine parameters
-p_info=p_info1+p_info2
 # Space to store the starting amplitudes of partials
 a_starts=[]
 # Space to store the average frequency of partials
@@ -63,8 +61,10 @@ ax4.plot([0,max(f_avg_calc)],
             as_v_f_th[0]+as_v_f_th[1]*max(f_avg_calc)*asvf_th])
 
 # plot the partials
-len_pi1=0
-for p in p_info1:
+# storage for partial data
+ptls=[]
+len_pi=0
+for p in p_info:
     if (len(p) <= 0):
         continue
     _f=np.imag(p[0][1][1])
@@ -88,32 +88,10 @@ for p in p_info1:
         ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='b')
         # Plot linearly interpolated data (2D)
         ax3.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
-        X.append([float(len(fpts)),th_f[0]])
-        len_pi1+=1
-
-len_pi2=0
-for p in p_info2:
-    if (len(p) <= 0):
-        continue
-    _f=np.imag(p[0][1][1])
-    _a=np.real(p[0][1][0])
-    # (See above for explanation)
-    if ((as_v_f_th[0]+as_v_f_th[1]*_f)*asvf_th<_a):
-        tpts=[]
-        fpts=[]
-        apts=[]
-        for i in xrange(len(p)):
-            tpts.append(p[i][0])
-            fpts.append(float(np.imag(p[i][1][1]))/(2.*np.pi)*Fs)
-            apts.append(float(np.real(p[i][1][0])))
-        th_a=np.linalg.lstsq(np.c_[np.ones(len(tpts)),tpts],apts)[0]
-        th_f=np.linalg.lstsq(np.c_[np.ones(len(tpts)),tpts],fpts)[0]
-#        ax.plot(tpts,fpts,apts,c='g')
-        tpts=np.array(tpts)
-        ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='r')
-        ax3.plot(tpts/512,th_f[0]+th_f[1]*tpts,'r')
-        X.append([float(len(fpts)),th_f[0]])
-        len_pi2+=1
+#        X.append([np.log(float(len(fpts))),th_f[0],th_a[0]])
+        X.append([np.log(float(len(fpts)))**2.,th_f[0]])
+        ptls.append([tpts,fpts,apts,th_f,th_a,p[i]])
+        len_pi+=1
 
 ax.set_xlabel('Time (samples)')
 ax.set_ylabel('Frequency (Hz)')
@@ -124,12 +102,10 @@ ax3.set_xlabel('Time (samples)')
 ax3.set_ylabel('Frequency (Hz)')
 ax3.set_title('Partial trajectories')
 
-
 X=np.array(X).T
-A=sm.pca_ne(np.c_[np.log(X[0,:]),X[1,:]].T,'cov')
-ax2.scatter(A[0,:len_pi1],A[1,:len_pi1],c='g')
-ax2.scatter(A[0,len_pi1:],A[1,len_pi1:],c='b')
-ax2.set_title('True memberships')
+A=sm.pca_ne(X,'cov')
+ax2.scatter(A[0,:],A[1,:],c='b')
+ax2.set_title('Unknown memberships')
 ax2.set_xlabel('1st PC')
 ax2.set_ylabel('2nd PC')
 
@@ -138,7 +114,8 @@ A_x=np.linspace(A[0,:].min(),A[0,:].max(),num=100)
 A_y=np.linspace(A[1,:].min(),A[1,:].max(),num=100)
 A_diff_x=(A[0,:].max()-A[0,:].min())
 A_diff_y=(A[1,:].max()-A[1,:].min())
-A_var_scl=1.2
+A_var_scl=0.2
+#A_var_scl=1.1
 A_var_x=(A_diff_y/(A_diff_x+A_diff_y))*A_var_scl
 A_var_y=(A_diff_x/(A_diff_x+A_diff_y))*A_var_scl
 A_X,A_Y=np.meshgrid(A_x,A_y)
@@ -165,6 +142,8 @@ a_lma_ma_arg=A_Z[a_lma_arg_r,a_lma_arg_c].argmax()
 a_lma_mi_arg=A_Z[a_lma_arg_r,a_lma_arg_c].argmin()
 a_lma_ma=A_Z[a_lma_arg_r,a_lma_arg_c][a_lma_ma_arg]
 a_lma_mi=A_Z[a_lma_arg_r,a_lma_arg_c][a_lma_mi_arg]
+
+print A_Z[a_lma_arg_r,a_lma_arg_c]
 print a_lma_ma,a_lma_mi
 
 #np.exp(-((A_y[j]+4.)**2.+A_x[i]+3000.)**2.)#_krnl(np.array([A_y[j],A_x[i]]),A.T)
@@ -174,12 +153,21 @@ ax2.plot(A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
 
 
 # Classify partials using amplitude modulation
+# GMM weight adjustment parameter
+# Maximum weight multiplied by gmm_w_th
+gmm_w_th=1.1
 gmm_means=np.c_[A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
         A_y[a_lma_arg_r[np.r_[a_lma_ma_arg,a_lma_mi_arg]]]]
-gmm=sklearn.mixture.GMM(n_components=2,init_params='c')
-gmm.weights_=np.array([a_lma_ma/(a_lma_ma+a_lma_mi),a_lma_mi/(a_lma_ma+a_lma_mi)])
-gmm.means_=gmm_means#np.array([[-3000,-5.5],[-1000,-3]])
-gmm_grps=gmm.fit_predict(A.T)
+gmm=sklearn.mixture.GMM(n_components=2,init_params='c',covariance_type='full')
+#gmm.covars_=np.array([[A_var_x,A_var_y],[A_var_x,A_var_y]])
+gmm.weights_=np.array([a_lma_ma*gmm_w_th/(a_lma_ma*gmm_w_th+a_lma_mi),
+    a_lma_mi/(a_lma_ma*gmm_w_th+a_lma_mi)])
+#gmm.weights=np.array([0.5,0.5])
+gmm.means_=gmm_means
+gmm_grps=gmm.fit_predict(A[:2,:].T)
+print gmm.covars_
+
+
 m1_idx=np.where(gmm_grps==0)[0]
 m2_idx=np.where(gmm_grps==1)[0]
 ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='g')
@@ -187,5 +175,14 @@ ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='b')
 ax5.set_title('Estimated memberships')
 ax5.set_xlabel('1st PC')
 ax5.set_ylabel('2nd PC')
+
+# Plot source separated partials
+for ptl,grp in zip(ptls,gmm_grps):
+    if (grp==0):
+        ax_=ax6
+    else:
+        ax_=ax7
+    tpts,fpts,apts,th_f,th_a,p=ptl
+    ax_.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
 
 plt.show()
