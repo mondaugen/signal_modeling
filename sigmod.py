@@ -239,10 +239,7 @@ def ddm_p2_1_3(x,w,dw):
     a:
         a vector containing the estimated parameters
     """
-    N_x=len(x)
     N_w=len(w)
-    Ncx=(N_x-1)/2
-    Ncw=(N_w-1)/2
     nx0=np.arange(N_w)
     x0=x[nx0]
     Xp1w=np.fft.fft(x0*w)
@@ -263,7 +260,10 @@ def ddm_p2_1_3(x,w,dw):
                 Xdw[(kma0)-1:(kma0+2)],
                 ]
             ]
-    a=np.linalg.lstsq(A,-b)[0]
+    try:
+        a=np.linalg.lstsq(A,-b)[0]
+    except ValueError:
+        return np.zeros((3,1)).astype('complex_')
     gam=np.exp(a[0]*nx0+a[1]*nx0**2.)
     a0=(np.log(np.inner(x0,np.conj(gam)))
         -np.log(np.inner(gam,np.conj(gam))))
