@@ -15,7 +15,7 @@ with open('tmp/xylo_fs4_sr16k.pardat','r') as f:
     p_info2=pickle.load(f)
 
 # Sample rate
-Fs=16000
+Fs=16000.
 # Hop size between analysis frames
 H=512
 
@@ -32,6 +32,8 @@ fig4 = plt.figure(4)
 ax4= fig4.gca()
 fig5 = plt.figure(5)
 ax5  = fig5.gca()
+fig6 = plt.figure(6)
+ax6  = fig6.gca()
 
 # Space to store combined partial paramters
 X=[]
@@ -62,6 +64,8 @@ ax4.plot([0,max(f_avg_calc)],
         [as_v_f_th[0]*asvf_th,
             as_v_f_th[0]+as_v_f_th[1]*max(f_avg_calc)*asvf_th])
 
+# Threshold
+tau=np.log(10.**(-100/20))
 # plot the partials
 len_pi1=0
 for p in p_info1:
@@ -88,7 +92,10 @@ for p in p_info1:
         ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='b')
         # Plot linearly interpolated data (2D)
         ax3.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
-        X.append([float(len(fpts)),th_f[0]])
+        X.append([(tau-th_a[0])/th_a[1],th_f[0]])
+        #X.append([float(len(fpts)),th_f[0]])
+#        X.append([max(tpts)-min(tpts),th_f[0],th_a[1]])
+#        X.append([max(tpts)-min(tpts),th_f[0]])
         len_pi1+=1
 
 len_pi2=0
@@ -112,7 +119,11 @@ for p in p_info2:
         tpts=np.array(tpts)
         ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='r')
         ax3.plot(tpts/512,th_f[0]+th_f[1]*tpts,'r')
-        X.append([float(len(fpts)),th_f[0]])
+        ax3.annotate(str(len_pi2),xy=(min(tpts),th_f[0]))
+        X.append([(tau-th_a[0])/th_a[1],th_f[0]])
+#        X.append([float(len(fpts)),th_f[0]])
+#        X.append([max(tpts)-min(tpts),th_f[0],th_a[1]])
+#        X.append([max(tpts)-min(tpts),th_f[0]])
         len_pi2+=1
 
 ax.set_xlabel('Time (samples)')
@@ -126,9 +137,20 @@ ax3.set_title('Partial trajectories')
 
 
 X=np.array(X).T
-A=sm.pca_ne(np.c_[np.log(X[0,:]),X[1,:]].T,'cov')
-ax2.scatter(A[0,:len_pi1],A[1,:len_pi1],c='g')
-ax2.scatter(A[0,len_pi1:],A[1,len_pi1:],c='b')
+X[0,:]=(X[0,:]-X[0,:].min())/(X[0,:].max()-X[0,:].min())
+X[0,:]=X[0,:]*X[1,:].max()
+X[0,:]=1./(X[0,:]+1)
+#X[0,:]=X[0,:]**-1.
+#A=sm.pca_ne(np.c_[np.log(X[0,:]),X[1,:]].T,'cov')
+#A=sm.pca_ne(np.c_[X[0,:],X[1,:]].T,'cov')
+A=sm.pca_ne(X,'cov')
+ax2.scatter(A[0,:len_pi1],A[1,:len_pi1],c='b')
+ax2.scatter(A[0,len_pi1:],A[1,len_pi1:],c='r')
+lbls=['{0}'.format(i) for i in xrange(len(A[0,len_pi1:]))]
+for lbl,x,y in zip(lbls,A[0,len_pi1:],A[1,len_pi1:]):
+    ax2.annotate(lbl,xy=(x,y))
+#ax2.scatter(X[0,:len_pi1],X[1,:len_pi1],c='g')
+#ax2.scatter(X[0,len_pi1:],X[1,len_pi1:],c='b')
 ax2.set_title('True memberships')
 ax2.set_xlabel('1st PC')
 ax2.set_ylabel('2nd PC')
@@ -179,13 +201,22 @@ gmm_means=np.c_[A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
 gmm=sklearn.mixture.GMM(n_components=2,init_params='c')
 gmm.weights_=np.array([a_lma_ma/(a_lma_ma+a_lma_mi),a_lma_mi/(a_lma_ma+a_lma_mi)])
 gmm.means_=gmm_means#np.array([[-3000,-5.5],[-1000,-3]])
-gmm_grps=gmm.fit_predict(A.T)
+gmm_grps=gmm.fit_predict(A[:2,:].T)
 m1_idx=np.where(gmm_grps==0)[0]
 m2_idx=np.where(gmm_grps==1)[0]
-ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='g')
-ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='b')
+ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='b')
+ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='r')
 ax5.set_title('Estimated memberships')
 ax5.set_xlabel('1st PC')
 ax5.set_ylabel('2nd PC')
+
+ax6.scatter(X[0,:len_pi1],X[1,:len_pi1],c='b')
+ax6.scatter(X[0,len_pi1:],X[1,len_pi1:],c='r')
+lbls=['{0}'.format(i) for i in xrange(len(X[0,len_pi1:]))]
+for lbl,x,y in zip(lbls,X[0,len_pi1:],X[1,len_pi1:]):
+    ax6.annotate(lbl,xy=(x,y))
+ax6.set_title('True memberships')
+ax6.set_xlabel('Log length log(samples)')
+ax6.set_ylabel('Frequency (Hz)')
 
 plt.show()

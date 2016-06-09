@@ -66,6 +66,8 @@ ax4.plot([0,max(f_avg_calc)],
 # storage for partial data
 ptls=[]
 len_pi=0
+# Threshold
+tau=np.log(10.**(-100/20))
 for p in p_info:
     if (len(p) <= 0):
         continue
@@ -91,7 +93,8 @@ for p in p_info:
         # Plot linearly interpolated data (2D)
         ax3.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
 #        X.append([np.log(float(len(fpts))),th_f[0],th_a[0]])
-        X.append([np.log(float(len(fpts)))**2.,th_f[0]])
+#        X.append([np.log(float(len(fpts)))**2.,th_f[0]])
+        X.append([(tau-th_a[0])/th_a[1],th_f[0]])
         ptls.append([tpts,fpts,apts,th_f,th_a,p])
         len_pi+=1
 
@@ -106,7 +109,8 @@ ax3.set_title('Partial trajectories')
 
 X=np.array(X).T
 A=sm.pca_ne(X,'cov')
-ax2.scatter(A[0,:],A[1,:],c='b')
+#ax2.scatter(A[0,:],A[1,:],c='b')
+ax2.scatter(X[0,:],X[1,:],c='b')
 ax2.set_title('Unknown memberships')
 ax2.set_xlabel('1st PC')
 ax2.set_ylabel('2nd PC')
