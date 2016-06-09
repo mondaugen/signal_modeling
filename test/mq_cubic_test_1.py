@@ -12,7 +12,7 @@ A_t=np.ones(len(f_t))
 # Sample rate
 Fs=16000.
 # Length of signal, seconds
-T_x=10.
+T_x=5.
 # Length in samples
 M=int(np.floor(Fs*T_x))
 # sample indices
@@ -37,6 +37,8 @@ x=np.exp(1j*np.polyval(d,m))
 plt.figure(1)
 plt.specgram(x,Fs=Fs)
 plt.title('Original signal: spectrogram')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Frequency (Hz)')
 
 # Estimated parameters
 th=[]
@@ -104,16 +106,24 @@ for i in xrange(len(th)-1):
 plt.figure(2)
 plt.specgram(y,Fs=Fs)
 plt.title('Estimated signal: spectrogram')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Frequency (Hz)')
 
 plt.figure(3)
-plt.plot(m,np.real(x),c='g')
-plt.title('True signal (real part)')
-plt.plot(m,np.real(y),c='b')
+# Plot length
+N_plt=3000
+plt.plot(m,np.real(x),c='g',label='True')
+plt.plot(m,np.real(y),c='b',label='Estimated')
+plt.gca().set_xlim(0,N_plt)
+plt.title('True vs. Estimated signal (real part)')
+plt.ylabel('Amplitude')
+plt.xlabel('Sample number')
+plt.legend()
 plt.figure(4)
-plt.plot(m,np.real(y))
-plt.title('Estimated signal (real part)')
-plt.figure(5)
 plt.plot(m,20.*np.log10(np.abs(y-x)))
+plt.gca().set_xlim(0,N_plt)
 plt.title('Error signal (db Error)')
+plt.ylabel('Amplitude (dB power)')
+plt.xlabel('Sample number')
 
 plt.show()

@@ -56,7 +56,7 @@ w_=((wc*np.power(-1,np.arange(len(wc))))[:,np.newaxis]
 W=np.sum(w_,0)
 dw_=((2.*np.pi/N*wc[1:]*np.arange(1,len(wc))
         *np.power(-1,1+np.arange(1,len(wc))))[:,np.newaxis]
-    *np.sin(np.pi*2./N*np.outer(np.arange(1,len(wc)),n)))
+        *np.sin(np.pi*2./N*np.outer(np.arange(1,len(wc)),n)))
 dW=np.sum(dw_,0)
 for h in np.arange(0,M-N,H):
     x_=x[h:h+N]
