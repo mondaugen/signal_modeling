@@ -7,7 +7,9 @@ import sigmod as sm
 import sklearn.mixture
 
 # Load partials from file 1
-with open('tmp/xylo_fs4_ac_gtr_a3_sr16k.pardata','r') as f:
+fname_ptls_out='tmp/xylo_fs4_ac_gtr_a3_sr16k.ptls'
+fname_pardata_in='tmp/xylo_fs4_ac_gtr_a3_sr16k.pardata'
+with open(fname_pardata_in,'r') as f:
     p_info=pickle.load(f)
 
 # Sample rate
@@ -90,7 +92,7 @@ for p in p_info:
         ax3.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
 #        X.append([np.log(float(len(fpts))),th_f[0],th_a[0]])
         X.append([np.log(float(len(fpts)))**2.,th_f[0]])
-        ptls.append([tpts,fpts,apts,th_f,th_a,p[i]])
+        ptls.append([tpts,fpts,apts,th_f,th_a,p])
         len_pi+=1
 
 ax.set_xlabel('Time (samples)')
@@ -176,6 +178,12 @@ ax5.set_title('Estimated memberships')
 ax5.set_xlabel('1st PC')
 ax5.set_ylabel('2nd PC')
 
+# Dictionary to write partial sets to
+ptls_out=dict()
+for grp in gmm_grps:
+    ptls_out[grp]=[]
+
+
 # Plot source separated partials
 for ptl,grp in zip(ptls,gmm_grps):
     if (grp==0):
@@ -183,6 +191,10 @@ for ptl,grp in zip(ptls,gmm_grps):
     else:
         ax_=ax7
     tpts,fpts,apts,th_f,th_a,p=ptl
+    ptls_out[grp].append(p)
     ax_.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
+
+with open(fname_ptls_out,'w') as f:
+    pickle.dump(ptls_out,f)
 
 plt.show()

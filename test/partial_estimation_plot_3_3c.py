@@ -198,6 +198,7 @@ K_a=[]
 # The end frame indices of each block
 K_a_e=[]
 # The nodes that have not been classified into a path
+# (NOT USED)
 a_rem=[[True for a__ in a_] for a_ in a]
 
 # Find local maxima in initial spectrum to set f_hops

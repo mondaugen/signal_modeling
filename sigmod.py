@@ -1,4 +1,6 @@
 import numpy as np
+import scipy as sp
+import scipy.linalg
 
 def lextrem(a,comp='max'):
     """
@@ -466,3 +468,68 @@ def ddm_p2_3_1(x,H,w,dw,k_de):
             ]
     a=np.linalg.lstsq(A,-b)[0]
     return a
+
+def lstsq_c(H,x,A,b):
+    """
+    Constrained Least-Squares.
+    Solve the program
+    min || H*y = x ||_2
+    subject to
+    A*x=b    
+
+    H:
+        m by n observation matrix 
+    x:
+        m by 1 observation vector
+    A:
+        p by n constraint matrix
+    b:
+        p by 1 constraint vector
+
+    Returns
+    y:
+        n by 1 solution vector
+    """
+    # Solution via QR factorization
+    # We use the approach described in Golub and Van Loan, pp. 266-7
+    m,n=H.shape
+    p=A.shape[0]
+    H=np.asmatrix(H)
+    x=np.asmatrix(x)
+    A=np.asmatrix(A)
+    b=np.asmatrix(b)
+    B=np.asmatrix(sp.linalg.block_diag(np.eye(m),np.zeros(p)));
+    C=np.bmat('H;A');
+    c=np.bmat('x;b');
+    m_C,n_C=C.shape;
+    Q,R=np.linalg.qr(C,'complete');
+    Q1=Q[:,:n_C];
+    Q2=Q[:,n_C:];
+    R1=R[:n_C,:];
+    # In text, they say form 
+    #
+    # Q2'*B*Z=[0,S]
+    #
+    # where S is upper-diagonal
+    # To use the qr factorization here we do
+    #
+    # Q2'*B=[0,S]*Z' (Z is orthogonal matrix)
+    # B'*Q2=Z*[0;S']
+    #
+    # You can sort of see that flipping [0;S'] vertically, then horizontally will
+    # give a matrix [R;0], where R is upper triangular so we compute the QR
+    # factorization on Q2'*B flipped vertically then horizontally.
+    # The relationship is then
+    # Z=fliplr(flipud(Q_))
+    # [0,S]=flipud(fliplr(R_))'
+    Q_,R_=np.linalg.qr(np.fliplr(np.flipud(B.T*Q2)),'complete')
+    Z=np.fliplr(np.flipud(Q_))
+    OS=np.flipud(np.fliplr(R_)).T
+    S=OS[:,n_C:]
+    Z1=Z[:,:n_C];
+    Z2=Z[:,n_C:];
+    u=np.asmatrix(np.linalg.solve(S,Q2.T*c));
+    v=Z2*u;
+    y=np.linalg.solve(R1,Q1.T*c-Q1.T*B*v);
+    return y
+

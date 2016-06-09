@@ -41,19 +41,39 @@ plt.title('Original signal: spectrogram')
 # Estimated parameters
 th=[]
 # Hop size
-H=128
+H=256
 # Analysis window / FFT size
-N=512
+N=1024
 # Analysis window
 W=np.hanning(N+1)[:N]
+W_0=np.sum(W)
 # Total length of FFT (for zero padding)
-N_fft=N
+N_fft=2*N
 for h in np.arange(0,M-N,H):
     x_=x[h:h+N]*W
-    X_=np.fft.fft(x_,N_fft)
+    X_=np.fft.fft(x_,N_fft)/W_0
     kma=np.abs(X_).argmax()
+    if (kma > 0) and (kma < (N_fft-1)):
+        # Estimate better maximum using quadratic interpolation
+        B_X=np.matrix([
+            [0.5,-1.,0.5],
+            [-0.5,0,0.5],
+            [0,1,0]
+        ])
+        b_X=np.matrix([
+            [np.abs(X_)[kma-1]],
+            [np.abs(X_)[kma]],
+            [np.abs(X_)[kma+1]]
+        ])
+        a_X=B_X*b_X
+        a_X=np.array(a_X).flatten()
+        kma_=-a_X[1]/(2.*a_X[0])
+        Xma_=np.polyval(a_X,kma_)
+        kma+=kma_
+    else:
+        Xma_=np.abs(X_)[kma]
     # Store phase, frequency, amplitude
-    th.append([np.angle(X_[kma]),kma/float(N_fft)*2.*np.pi,np.abs(X_[kma])])
+    th.append([np.angle(X_[kma]),kma/float(N_fft)*2.*np.pi,Xma_])
 
 # Synthesize using McAulay & Quatieri cubic phase method
 h=0
@@ -84,5 +104,16 @@ for i in xrange(len(th)-1):
 plt.figure(2)
 plt.specgram(y,Fs=Fs)
 plt.title('Estimated signal: spectrogram')
+
+plt.figure(3)
+plt.plot(m,np.real(x),c='g')
+plt.title('True signal (real part)')
+plt.plot(m,np.real(y),c='b')
+plt.figure(4)
+plt.plot(m,np.real(y))
+plt.title('Estimated signal (real part)')
+plt.figure(5)
+plt.plot(m,20.*np.log10(np.abs(y-x)))
+plt.title('Error signal (db Error)')
 
 plt.show()
