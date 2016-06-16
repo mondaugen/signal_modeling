@@ -96,15 +96,15 @@ def g_f_2lp(S,
         sys.stderr.write('Restricting number of edges leaving each node.\n')
 
     for f in F[:-1]:
-#        a1_=cvx.spmatrix([],[],[],(1,N_nodes*N_nodes),'d')
-        a1_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
+        a1_=cvx.spmatrix([],[],[],(1,N_nodes*N_nodes),'d')
+#        a1_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
         for i in f:
             # restrict number of edges leaving S[i]
-            idx=i+np.arange(N_nodes)*N_nodes
-            a1_[idx]=1
+            #idx=i+np.arange(N_nodes)*N_nodes
+            #a1_[idx]=1
+            for j in xrange(N_nodes):
+                a1_[i+j*N_nodes]=1
             a1_[i+N_nodes*i]=0
-#            for j in xrange(N_nodes):
-#                a1_[i+j*N_nodes]=1
         A_.append(a1_)
         # restrict this to the number of paths
         b_.append(J)
@@ -149,8 +149,8 @@ def g_f_2lp(S,
             for i in F[k]:
                 if (k != (len(F)-1)):
                     # (in last frame, there can be no edges leaving)
-#                    g1_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
-                    g1_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
+                    g1_=cvx.spmatrix([],[],[],(N_nodes*N_nodes,1),'d')
+#                    g1_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
                     # restrict number of edges leaving S[i]
                     #for j in S[i].out_nodes:
                     #    g1_[i,j]=1
@@ -161,8 +161,8 @@ def g_f_2lp(S,
                     h_.append(1)
                 if (k != 0):
                     # (in first frame, there can be no edges entering)
-#                    g2_=cvx.spmatrix([],[],[],(N_nodes,N_nodes),'d')
-                    g2_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
+                    g2_=cvx.spmatrix([],[],[],(N_nodes*N_nodes,1),'d')
+#                    g2_=np.zeros((N_nodes*N_nodes,),dtype=np.double)
                     # restrict number of edges entering S[i]
                     #for j in S[i].in_nodes:
                     #    g2_[j,i]=1
@@ -182,8 +182,8 @@ def g_f_2lp(S,
 
         for k in xrange(len(F)):
             for i in F[k]:
-#                am1_=cvx.spmatrix([],[],[],(N_nodes*N_nodes+N_nodes+len(F),1),'d')
-                am1_=np.zeros((N_nodes*N_nodes+N_nodes+len(F),),dtype=np.double)
+                am1_=cvx.spmatrix([],[],[],(N_nodes*N_nodes+N_nodes+len(F),1),'d')
+#                am1_=np.zeros((N_nodes*N_nodes+N_nodes+len(F),),dtype=np.double)
                 if (k!=(len(F)-1)):
                     # For all frames but last frame, weight is simply sum of all
                     # edges exiting a node
@@ -205,8 +205,8 @@ def g_f_2lp(S,
                 A_mean.append(am1_)
                 b_.append(0)
             # Make inequality for calculating mean from weights
-#            am2_=cvx.spmatrix([],[],[],(N_nodes*N_nodes+N_nodes+len(F),1),'d')
-            am2_=np.zeros((N_nodes*N_nodes+N_nodes+len(F),),dtype=np.double)
+            am2_=cvx.spmatrix([],[],[],(N_nodes*N_nodes+N_nodes+len(F),1),'d')
+#            am2_=np.zeros((N_nodes*N_nodes+N_nodes+len(F),),dtype=np.double)
             for i in F[k]:
                 am2_[N_nodes*N_nodes+i]=S[i].value/float(J)
             # Coefficient for variable that will contain the mean for this frame
@@ -279,42 +279,42 @@ def g_f_2lp(S,
     if (verbose):
         sys.stderr.write('Building inequality contraint matrix.\n')
 
-#    G=cvx.spmatrix([],[],[],(G_n_cols,A_n_cols),'d')
+    G=cvx.spmatrix([],[],[],(G_n_cols,A_n_cols),'d')
 #    G=cvx.matrix(0,(G_n_cols,A_n_cols),'d')
-    G=np.zeros((G_n_cols,A_n_cols),dtype=np.double)
+    #G=np.zeros((G_n_cols,A_n_cols),dtype=np.double)
     G_idx=0
     if (verbose):
         sys.stderr.write('\tPart1.\n')
 
     for i in xrange(len(G_)):
 #        G_[i].size=(N_nodes*N_nodes,1)
-#        G[i,:(N_nodes*N_nodes)]=G_[i].T
-        G[i,:(N_nodes*N_nodes)]=G_[i]
+        G[i,:(N_nodes*N_nodes)]=G_[i].T
+        #G[i,:(N_nodes*N_nodes)]=G_[i]
 #        G_[i].size=(N_nodes,N_nodes)
         G_idx+=1
-#    for n in xrange(N_nodes*N_nodes):
-#        G[len(G_)+n,n]=1
-#        G_idx+=1
-#        h_.append(1)
+    for n in xrange(N_nodes*N_nodes):
+        G[len(G_)+n,n]=1
+        G_idx+=1
+        h_.append(1)
     if (verbose):
         sys.stderr.write('\tPart2.\n')
 
-    idx_r=len(G_)+np.arange(N_nodes*N_nodes)
-    idx_c=np.arange(N_nodes*N_nodes)
-    G[idx_r,idx_c]=1
+    #idx_r=len(G_)+np.arange(N_nodes*N_nodes)
+    #idx_c=np.arange(N_nodes*N_nodes)
+    #G[idx_r,idx_c]=1
     G_idx+=N_nodes*N_nodes
-    h_+=[1 for _ in xrange(N_nodes*N_nodes)]
+#    h_+=[1 for _ in xrange(N_nodes*N_nodes)]
     if (verbose):
         sys.stderr.write('\tPart3.\n')
 
-    idx_r+=N_nodes*N_nodes
-    G[idx_r,idx_c]=-1
+#    idx_r+=N_nodes*N_nodes
+#    G[idx_r,idx_c]=-1
     G_idx+=N_nodes*N_nodes
-    h_+=[0 for _ in xrange(N_nodes*N_nodes)]
-#    for n in xrange(N_nodes*N_nodes):
-#        G[len(G_)+N_nodes*N_nodes+n,n]=-1
-#        G_idx+=1
-#        h_.append(0)
+#    h_+=[0 for _ in xrange(N_nodes*N_nodes)]
+    for n in xrange(N_nodes*N_nodes):
+        G[len(G_)+N_nodes*N_nodes+n,n]=-1
+        G_idx+=1
+        h_.append(0)
 
     if (opt['min_mean_dev']):
         if (verbose):
@@ -335,14 +335,14 @@ def g_f_2lp(S,
 
     d=dict()
     d['c']=c_final
-#    d['A']=A
-    d['A']=cvx.sparse(cvx.matrix(A))
+    d['A']=A
+#    d['A']=cvx.sparse(cvx.matrix(A))
 #    d['A']=cvx.matrix(A)
     d['A_']=A_
     d['b']=b
 #    d['b_']=b_
-#    d['G']=G
-    d['G']=cvx.sparse(cvx.matrix(G))
+    d['G']=G
+#    d['G']=cvx.sparse(cvx.matrix(G))
 #    d['G']=cvx.matrix(G)
 #    d['G_']=G_
     d['h']=h

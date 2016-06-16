@@ -743,7 +743,7 @@ def lp_sol_extract_paths(sol,S,F):
     T=len(F)
     N_F0=len(F[0])
     # Auxiliary variables will be tacked on the end, discard them
-    x=sol['x'][:(len(S)*len(S))]
+    x=sol[:(len(S)*len(S))]
     x.size=(len(S),len(S))
     paths=[]
     for n in xrange(N_F0):

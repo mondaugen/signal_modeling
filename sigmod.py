@@ -533,3 +533,46 @@ def lstsq_c(H,x,A,b):
     y=np.linalg.solve(R1,Q1.T*c-Q1.T*B*v);
     return y
 
+def w_dw_sum_cos(M,a='hanning'):
+    """
+    Construct sum of cosine windows, based on type or coefficients specified in
+    a.
+
+    M:
+        Integer. Length of window.
+    a:
+        str or iterable. If string, can be:
+            'hann'
+            'hanning'
+            'c1-blackman-4'
+        Otherwise can specify the coefficients of a window.
+
+    Returns:
+    w,dw
+    w:
+        The window.
+    dw:
+        The derivative of window
+    """
+    
+    if (type(a)==type(str())):
+        if (a=='hann') or (a=='hanning'):
+            c=np.r_[0.5,0.5]
+        elif (a=='c1-blackman-4'):
+            c=np.r_[0.358735,0.488305,0.141265,0.011695]
+    else:
+        try:
+            _it=iter(a)
+        except TypeError:
+            print a, 'is not iterable'
+        c=a
+    m=np.arange(M)
+    w_=((c*np.power(-1,np.arange(len(c))))[:,np.newaxis]
+            *np.cos(np.pi*2./M*np.outer(np.arange(len(c)),m)))
+    w=np.sum(w_,0)
+    dw_=((2.*np.pi/M*c[1:]*np.arange(1,len(c))
+            *np.power(-1,1+np.arange(1,len(c))))[:,np.newaxis]
+        *np.sin(np.pi*2./M*np.outer(np.arange(1,len(c)),m)))
+    dw=np.sum(dw_,0)
+    return (w,dw)
+    
