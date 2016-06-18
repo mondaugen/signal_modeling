@@ -4,11 +4,25 @@ import ptpath
 import ptpath_test
 from cvxopt import solvers
 import os
+import sys
+
+showplot=0
+if (len(sys.argv) >= 2):
+    if (int(sys.argv[1])==1):
+        showplot=1
 
 outpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 fig1_outpath=outpath+'small_graph_ex.eps'
 fig2_outpath=outpath+'small_graph_ex_greedy_paths.eps'
 fig3_outpath=outpath+'small_graph_ex_lp_paths.eps'
+c_outpath=outpath+'c.txt'
+G_outpath=outpath+'G.txt'
+h_outpath=outpath+'h.txt'
+A_outpath=outpath+'A.txt'
+b_outpath=outpath+'b.txt'
+grd_outpath=outpath+'small_graph_ex_greedy_cost.txt'
+lp_outpath=outpath+'small_graph_ex_lp_cost.txt'
+
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -144,7 +158,10 @@ for j in xrange(J):
                 shrinkA=10,
                 shrinkB=10,
                 color='k')) 
-print 'Total cost (greedy): %f' % (sum(cs_grd),)
+cs_grd_tot=np.array(sum(cs_grd))
+print 'Total cost (greedy): %f' % (cs_grd_tot,)
+with open(grd_outpath,'w') as f:
+    f.write('%f' % (cs_grd_tot,))
 ax2.set_xticks(np.array(list(xrange(F[-1][0][0][0]+1)),dtype=np.int))
 plt.savefig(fig2_outpath)
 
@@ -211,5 +228,13 @@ for path in paths:
 ax3.set_xticks(np.array(list(xrange(F[-1][0][0][0]+1)),dtype=np.int))
 print 'Total cost (LP): %f' % (sol['primal objective'])
 plt.savefig(fig3_outpath)
+#np.savetxt(c_outpath,np.array(d['c']))
+#np.savetxt(G_outpath,np.array(d['G']))
+#np.savetxt(h_outpath,np.array(d['h']))
+#np.savetxt(A_outpath,np.array(d['A']))
+#np.savetxt(b_outpath,np.array(d['b']))
+with open(lp_outpath,'w') as f:
+    f.write('%f' % (float(sol['primal objective']),))
 
-plt.show()
+if (showplot):
+    plt.show()
