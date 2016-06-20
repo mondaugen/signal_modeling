@@ -5,6 +5,22 @@ import sys
 import ptpath
 from cvxopt import solvers
 import ptpath_test
+import os
+
+show_plot=False
+
+plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+if len(sys.argv) < 2:
+    D_r=20.
+    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'_dflt.eps'
+else:
+    D_r=float(sys.argv[1])
+    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'.eps'
+
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
+
+fig, (ax1,ax2,ax3) = plt.subplots(3,1,sharex='col',sharey='row')
 
 # Test McAulay and Quatieri partial path construction
 
@@ -20,6 +36,14 @@ K=3
 # Boundaries on frequencies to consider
 f_min=250.
 f_max=2250
+
+## Power of signal (dB)
+#  Each sinusoid has amplitude 1 and there are K sinusoids per sound.
+#  (The noise is added to each sound)
+D_s=20.*np.log(K)
+## Signal to noise ratio (dB)
+D_n=D_s-D_r
+P_n=10.**(D_n/10.)
 
 T=1.
 Fs=16000
@@ -47,8 +71,8 @@ for k in np.arange(1,K+1):
     x1_n+=np.exp(1j*phi_n)
 
 # Add noise
-x0_n+=np.random.standard_normal(N)*np.sqrt(1)
-x1_n+=np.random.standard_normal(N)*np.sqrt(1)
+x0_n+=np.random.standard_normal(N)*np.sqrt(P_n)
+x1_n+=np.random.standard_normal(N)*np.sqrt(P_n)
 
 # Analysis window length
 M=1024
@@ -67,13 +91,15 @@ b_ddm=np.round(b_ddm_hz/Fs*M)
 o_ddm=np.round(o_ddm_hz/Fs*M)
 print 'b_ddm, o_ddm = %d %d' %(b_ddm,o_ddm)
 # threshold of value seen as valid
-th_ddm=0.01
+th_ddm=0.1
 # Highest bin to consider
 M_ddm=M/2
 # number of bins after last maximum to skip
 i_ddm=3
 
-plt.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
+ax1.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
+ax2.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
+ax3.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
 
 a=[]
 a0=[]
@@ -82,12 +108,6 @@ h=0
 while ((h+M) <= N):
     a0.append(sm.ddm_p2_1_3_b(x0_n[h:(h+M)],w,dw,
         b_ddm,o_ddm,th_ddm,M_ddm,i_ddm))
-#    for a_ in a0[-1]:
-#        f0_=np.imag(a_[1])/(2.*np.pi)*Fs
-#        f1_=(np.imag(a_[1])+2.*np.imag(a_[2])*H)/(2.*np.pi)*Fs
-#        t0_=h/float(Fs)
-#        t1_=(h+H)/float(Fs)
-#        plt.plot([t0_,t1_],[f0_,f1_],c='w')
     h+=H
     a.append(a0[-1])
 
@@ -98,12 +118,6 @@ k=0
 while ((h+M) <= N):
     a1.append(sm.ddm_p2_1_3_b(x1_n[h:(h+M)],w,dw,
         b_ddm,o_ddm,th_ddm,M_ddm,i_ddm))
-#    for a_ in a1[-1]:
-#        f0_=np.imag(a_[1])/(2.*np.pi)*Fs
-#        f1_=(np.imag(a_[1])+2.*np.imag(a_[2])*H)/(2.*np.pi)*Fs
-#        t0_=h/float(Fs)
-#        t1_=(h+H)/float(Fs)
-#        plt.plot([t0_,t1_],[f0_,f1_],c='w')
     h+=H
     a[k]+=a1[-1]
     k+=1
@@ -126,7 +140,7 @@ for a_ in a_flt:
         f1_=(np.imag(a__[1])+2.*np.imag(a__[2])*H)/(2.*np.pi)*Fs
         t0_=h/float(Fs)
         t1_=(h+H)/float(Fs)
-        plt.plot([t0_,t1_],[f0_,f1_],c='w')
+        ax1.plot([t0_,t1_],[f0_,f1_],c='w')
     h+=H
 
 # Find this many best paths
@@ -178,7 +192,7 @@ for k,A_cxn_ in zip(xrange(len(a_flt)-1),A_cxn):
         f1_=np.imag(a_1[1])/(2.*np.pi)*Fs
         t0_=h/float(Fs)
         t1_=(h+H)/float(Fs)
-        plt.plot([t0_,t1_],[f0_,f1_],c='r')
+        ax2.plot([t0_,t1_],[f0_,f1_],c='w')
     h+=H
 
 ## Compare with LP method
@@ -235,7 +249,6 @@ for l in xrange(0,len(a_flt)-L,L-1):
     paths_all.append(full_paths)
     # Record indices in F[-1] of end_nodes
     end_node_indices=[F[-1].index(en) for en in end_nodes]
-#    end_node_indices=[]
     S_all.append(S)
     F_all.append(F)
 
@@ -247,10 +260,22 @@ for S,F,paths in zip(S_all,F_all,paths_all):
         for p in path:
             fs.append(np.imag(S[p].value[1])/(2.*np.pi)*Fs)
         fs=np.array(fs)
-        plt.plot(ts,fs,c='b')
+        ax3.plot(ts,fs,c='w')
     l+=L-1
 
-ax1=plt.gca()
 ax1.set_ylim(f_min,f_max)
 ax1.set_xlim(0.,(h-H)/float(Fs))
-plt.show()
+ax1.set_title('Spectrogram and peak analysis, SNR %d dB' % (int(np.round(D_r)),))
+ax2.set_ylim(f_min,f_max)
+ax2.set_xlim(0.,(h-H)/float(Fs))
+ax2.set_title('Greedy method')
+ax3.set_ylim(f_min,f_max)
+ax3.set_xlim(0.,(h-H)/float(Fs))
+ax3.set_title('LP method')
+ax3.set_xlabel("Time in seconds")
+ax2.set_ylabel("Frequency in Hz")
+
+fig.savefig(plotoutpath)
+
+if show_plot:
+    plt.show()
