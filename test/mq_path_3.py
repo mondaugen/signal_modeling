@@ -7,15 +7,17 @@ from cvxopt import solvers
 import ptpath_test
 import os
 
+# Give paths starting point hint
+
 show_plot=False
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 if len(sys.argv) < 2:
     D_r=20.
-    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'_dflt.eps'
+    plotoutpath+='mq_lp_compare_chirp_hint'+str(int(np.round(D_r)))+'_dflt.eps'
 else:
     D_r=float(sys.argv[1])
-    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'.eps'
+    plotoutpath+='mq_lp_compare_chirp_hint'+str(int(np.round(D_r)))+'.eps'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -36,6 +38,12 @@ K=3
 # Boundaries on frequencies to consider
 f_min=250.
 f_max=2250
+# start frequencies of chirp 1
+f_c0_t0=np.arange(1,K+1)*f0_0
+# start frequencies of chirp 2
+f_c1_t0=np.arange(1,K+1)*f1_0
+# start frequencies
+f_t0=np.r_[f_c0_t0,f_c1_t0]
 
 ## Power of signal (dB)
 #  Each sinusoid has amplitude 1 and there are K sinusoids per sound.
@@ -128,6 +136,15 @@ def _dp_filt(_a):
     f1_=(np.imag(_a[1])+2.*np.imag(_a[2])*H)/(2.*np.pi)*Fs
     return ((max(f0_,f1_) < f_max)
         and (min(f0_,f1_) > f_min))
+
+# Keep only data-points closest to true frequency
+a_t0=[]
+for f_t0_ in f_t0:
+    _fs=[np.imag(_a[1])/(2.*np.pi)*Fs for _a in a[0]]
+    _fs=np.array(_fs)
+    _i=((_fs-f_t0_)**2.).argmin()
+    a_t0.append(a[0][_i])
+a[0]=a_t0
 
 a_flt=[]
 for a_ in a:

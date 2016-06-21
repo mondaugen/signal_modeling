@@ -7,15 +7,18 @@ from cvxopt import solvers
 import ptpath_test
 import os
 
+# In this implementation, the partials are not analysed separately before
+# classifying into paths
+
 show_plot=False
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 if len(sys.argv) < 2:
     D_r=20.
-    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'_dflt.eps'
+    plotoutpath+='mq_lp_compare_chirp_lumped_'+str(int(np.round(D_r)))+'_dflt.eps'
 else:
     D_r=float(sys.argv[1])
-    plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'.eps'
+    plotoutpath+='mq_lp_compare_chirp_lumped_'+str(int(np.round(D_r)))+'.eps'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -97,30 +100,21 @@ M_ddm=M/2
 # number of bins after last maximum to skip
 i_ddm=3
 
-Pxx1, freqs1, frames1, im1 = ax1.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
-ax2.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
-ax3.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
+x_n=x0_n+x1_n
+
+Pxx1, freqs1, frames1, im1 = ax1.specgram(x_n,NFFT=M,Fs=Fs,cmap='Greys')
+ax2.specgram(x_n,NFFT=M,Fs=Fs,cmap='Greys')
+ax3.specgram(x_n,NFFT=M,Fs=Fs,cmap='Greys')
 
 a=[]
 a0=[]
 # current hop
 h=0
 while ((h+M) <= N):
-    a0.append(sm.ddm_p2_1_3_b(x0_n[h:(h+M)],w,dw,
+    a0.append(sm.ddm_p2_1_3_b(x_n[h:(h+M)],w,dw,
         b_ddm,o_ddm,th_ddm,M_ddm,i_ddm,norm=True))
     h+=H
     a.append(a0[-1])
-
-a1=[]
-h=0
-# frame number
-k=0
-while ((h+M) <= N):
-    a1.append(sm.ddm_p2_1_3_b(x1_n[h:(h+M)],w,dw,
-        b_ddm,o_ddm,th_ddm,M_ddm,i_ddm,norm=True))
-    h+=H
-    a[k]+=a1[-1]
-    k+=1
 
 # Keep only data-points within bounds
 def _dp_filt(_a):

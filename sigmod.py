@@ -271,7 +271,7 @@ def ddm_p2_1_3(x,w,dw):
         -np.log(np.inner(gam,np.conj(gam))))
     return np.vstack((a0,a))
 
-def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1,ar=-1.):
+def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1,ar=-1.,norm=False):
     """
     Compute parameters of 2nd order polynomial using 2 bins surrounding the
     maximum of the STFT at the centre of signal x.
@@ -302,6 +302,9 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1,ar=-1.):
         the peak is considered, otherwise it is not. If the value is less than 0
         the peak is always considered (default -1). For example, if ar=40, the
         max_peak has to be 100 times that of the avg_min_peak.
+    norm:
+        If True, the "amplitude" spectrum is divided by sum(w) before inspecting
+        for maxima, otherwise not.
 
     Returns 
 
@@ -311,35 +314,15 @@ def ddm_p2_1_3_b(x,w,dw,b,o,th,M,i=1,ar=-1.):
     N_w=len(w)
     nx0=np.arange(N_w)
     x0=x[nx0]
-    # FFT are zero padded by one assuming N_w has odd length.
     Xp1w=np.fft.fft(x0*w)
     Xp2w=np.fft.fft(2.*nx0*x0*w)
     Xdw_=np.fft.fft(x0*dw)
     Xdw=Xp1w*(-2.*np.pi*1j*nx0/N_w)+Xdw_
     result=[]
-    ks = lextrem_win(np.abs(Xp1w),b,o,i,th,ar,M)
-    #b_=0
-    #while (b_ < M):
-    #    tmp_=np.abs(Xp1w)[b_:b_+b]
-    #    # Indices of values greater than their neighbours
-    #    kma=np.where(np.r_[False,tmp_[1:]>tmp_[:-1]]
-    #            & np.r_[tmp_[:-1]>tmp_[1:],False])[0]
-#   #     kma0=(np.abs(Xp1w)[b_:b_+b]).argmax()+b_
-    #    if len(kma) <= 0:
-    #        b_+=o
-    #        continue
-    #    kma0=kma[tmp_[kma].argmax()]+b_
-    #    if (np.abs(Xp1w)[kma0] < th):
-    #        b_+=o
-    #        continue
-    #    if ar > 0.:
-    #        l_min=np.abs(Xp1w)[b_:kma0].min()
-    #        r_min=np.abs(Xp1w)[kma0+1:b_+b].min()
-    #        alr_min=0.5*(l_min+r_min)
-    #        if (20.*np.log10(np.abs(Xp1w)[kma0]/alr_min)<ar):
-    #            b_+=o
-    #            continue
-    #    b_=kma0+i
+    if (norm):
+        ks=lextrem_win(np.abs(Xp1w)/np.sum(w),b,o,i,th,ar,M)
+    else:
+        ks=lextrem_win(np.abs(Xp1w),b,o,i,th,ar,M)
     for kma0 in ks:
         A=np.c_[
                 np.r_[
