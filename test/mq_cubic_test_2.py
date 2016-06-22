@@ -5,10 +5,21 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 import sigmod as sm
+
+show_plots=True
+
+plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+plotoutpath+='mq_mod_cubic'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
+
+# Hop size
+H=256
+# Analysis window / FFT size
+N=1024
 
 # Time points
 t_t=np.r_[0.,0.25,0.5]*1.
@@ -21,7 +32,7 @@ Fs=16000.
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
-M=int(np.floor(Fs*T_x))
+M=int(np.floor(Fs*T_x))+N
 # sample indices
 m=np.arange(M)
 # angular velocities
@@ -40,30 +51,22 @@ d=np.polyint(d_,k=phi_0)
 # Synthesize signal
 x=np.exp(1j*np.polyval(d,m))
 
-# Plot
-plt.figure(1)
-plt.specgram(x,Fs=Fs,cmap="Greys")
-plt.title('Original signal: spectrogram')
-plt.xlabel('Time (seconds)')
-plt.ylabel('Frequency (Hz)')
-
 # Estimated parameters
 th=[]
-# Hop size
-H=256
-# Analysis window / FFT size
-N=1024
 # Analysis window indices
 n=np.arange(N)
-# Analysis window
-wc=np.r_[0.358735,0.488305,0.141265,0.011695]
-w_=((wc*np.power(-1,np.arange(len(wc))))[:,np.newaxis]
-        *np.cos(np.pi*2./N*np.outer(np.arange(len(wc)),n)))
-W=np.sum(w_,0)
-dw_=((2.*np.pi/N*wc[1:]*np.arange(1,len(wc))
-        *np.power(-1,1+np.arange(1,len(wc))))[:,np.newaxis]
-        *np.sin(np.pi*2./N*np.outer(np.arange(1,len(wc)),n)))
-dW=np.sum(dw_,0)
+W,dW=sm.w_dw_sum_cos(N,'c1-blackman-4')
+
+# Plot
+plt.figure(1)
+plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.title('Original signal: (spectrogram)')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Frequency (Hz)')
+plt.gca().set_xlim(0,(len(x)-N)/float(Fs))
+plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
+plt.savefig(plotoutpath+'_original_spec.eps')
+
 for h in np.arange(0,M-N,H):
     x_=x[h:h+N]
     a_=sm.ddm_p2_1_3(x_,W,dW)
@@ -138,26 +141,33 @@ for i in xrange(len(th)-1):
     h+=H
 
 plt.figure(2)
-plt.specgram(y,Fs=Fs,cmap="Greys")
-plt.title('Estimated signal: spectrogram')
+plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
+plt.gca().set_xlim(0,h/float(Fs))
+plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
+plt.savefig(plotoutpath+'_estimated_spec.eps')
 
 plt.figure(3)
 # Plot length
-N_plt=3000
-plt.plot(m,np.real(x),c='g',label='True')
-plt.plot(m,np.real(y),c='b',label='Estimated')
-plt.gca().set_xlim(0,N_plt)
+N_plt_0=2000
+N_plt_1=3000
+plt.plot(m/float(Fs),np.real(x),c='k',label='True')
+plt.plot(m/float(Fs),np.real(y),c='Gray',label='Estimated')
+plt.gca().set_xlim(N_plt_0/float(Fs),N_plt_1/float(Fs))
 plt.title('True vs. Estimated signal (real part)')
 plt.ylabel('Amplitude')
-plt.xlabel('Sample number')
+plt.xlabel('Time (seconds)')
 plt.legend()
+plt.savefig(plotoutpath+'_orig_vs_est.eps')
 plt.figure(4)
-plt.plot(m,20.*np.log10(np.abs(y-x)))
-plt.gca().set_xlim(0,N_plt)
+plt.plot(m/float(Fs),20.*np.log10(np.abs(y-x)),c='k')
+plt.gca().set_xlim(0,h/float(Fs))
 plt.title('Error signal (db Error)')
 plt.ylabel('Amplitude (dB power)')
-plt.xlabel('Sample number')
+plt.xlabel('Time (seconds)')
+plt.savefig(plotoutpath+'_error.eps')
 
-plt.show()
+if (show_plots):
+    plt.show()

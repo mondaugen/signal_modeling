@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-show_plots=False
+show_plots=True
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='mq_cubic'
@@ -12,6 +12,10 @@ plotoutpath+='mq_cubic'
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 
+# Hop size
+H=256
+# Analysis window / FFT size
+N=1024
 # Time points
 t_t=np.r_[0.,0.25,0.5]*1.
 # signal starts at 100 Hz, goes to 110Hz and ends at 105Hz
@@ -23,7 +27,7 @@ Fs=16000.
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
-M=int(np.floor(Fs*T_x))
+M=int(np.floor(Fs*T_x))+N
 # sample indices
 m=np.arange(M)
 # angular velocities
@@ -44,10 +48,6 @@ x=np.exp(1j*np.polyval(d,m))
 
 # Estimated parameters
 th=[]
-# Hop size
-H=256
-# Analysis window / FFT size
-N=1024
 # Analysis window
 W=np.hanning(N+1)[:N]
 W_0=np.sum(W)
@@ -60,7 +60,7 @@ plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
 plt.title('Original signal: (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
-plt.gca().set_xlim(0,(len(x)-N)/float(Fs))
+plt.gca().set_xlim(0,(len(x)-2*N)/float(Fs))
 plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
 plt.savefig(plotoutpath+'_original_spec.eps')
 
@@ -121,7 +121,7 @@ plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
 plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
-plt.gca().set_xlim(0,h/float(Fs))
+plt.gca().set_xlim(0,(h-N)/float(Fs))
 plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
 plt.savefig(plotoutpath+'_estimated_spec.eps')
 
@@ -139,7 +139,7 @@ plt.legend()
 plt.savefig(plotoutpath+'_orig_vs_est.eps')
 plt.figure(4)
 plt.plot(m/float(Fs),20.*np.log10(np.abs(y-x)),c='k')
-plt.gca().set_xlim(0,h/float(Fs))
+plt.gca().set_xlim(0,(h-N)/float(Fs))
 plt.title('Error signal (db Error)')
 plt.ylabel('Amplitude (dB power)')
 plt.xlabel('Time (seconds)')
