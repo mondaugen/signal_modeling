@@ -61,7 +61,7 @@ plt.title('Original signal: (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.gca().set_xlim(0,(len(x)-2*N)/float(Fs))
-plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
+plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*1.5)
 plt.savefig(plotoutpath+'_original_spec.eps')
 
 for h in np.arange(0,M-N,H):
@@ -122,7 +122,7 @@ plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.gca().set_xlim(0,(h-N)/float(Fs))
-plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*2.)
+plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*1.5)
 plt.savefig(plotoutpath+'_estimated_spec.eps')
 
 plt.figure(3)
