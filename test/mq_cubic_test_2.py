@@ -1,21 +1,25 @@
 # Analyse frames using the DDM.
 # Resynthesize using a modified McAulay and Quatieri method, taking into
 # consideration the estimated frequency slope.
+# Here we use a cubic polynomial of phase and amplitude
 
 import numpy as np
 import matplotlib.pyplot as plt
 import sigmod as sm
 
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
+
 # Time points
-t_t=np.r_[0.,0.25,0.5]*10.
+t_t=np.r_[0.,0.25,0.5]*1.
 # signal starts at 100 Hz, goes to 110Hz and ends at 105Hz
-f_t=np.r_[100.,300.,200.]
+f_t=np.r_[100.,500.,200.]
 # Amplitude constant
 A_t=np.ones(len(f_t))
 # Sample rate
 Fs=16000.
 # Length of signal, seconds
-T_x=5.
+T_x=0.5
 # Length in samples
 M=int(np.floor(Fs*T_x))
 # sample indices
@@ -38,7 +42,7 @@ x=np.exp(1j*np.polyval(d,m))
 
 # Plot
 plt.figure(1)
-plt.specgram(x,Fs=Fs)
+plt.specgram(x,Fs=Fs,cmap="Greys")
 plt.title('Original signal: spectrogram')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -134,7 +138,7 @@ for i in xrange(len(th)-1):
     h+=H
 
 plt.figure(2)
-plt.specgram(y,Fs=Fs)
+plt.specgram(y,Fs=Fs,cmap="Greys")
 plt.title('Estimated signal: spectrogram')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')

@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 import scipy.linalg
+import sys
 
 def lextrem(a,comp='max'):
     """
@@ -559,3 +560,28 @@ def w_dw_sum_cos(M,a='hanning'):
     dw=np.sum(dw_,0)
     return (w,dw)
     
+def polyval_mu(p,x):
+    """
+    Evaluate the polynomial
+
+        p(x) = p[0]*x**(N-1) + ... + p[N-1]
+
+    where p is an array of coefficients of length N using Horner's method and
+    keep track of an error bound. See "Accuracy and Stability of Numerical
+    Algorithms" by Nicholas J. Higham, p. 95 for details.
+    Returns:
+        y:
+            The polynomial evaluated at x.
+        mu:
+            The a posteriori error bound.
+    """
+    # Compute unit roundoff
+    u=0.5*sys.float_info.radix**(1-sys.float_info.mant_dig)
+    N=len(p)
+    y=p[0]
+    mu=abs(y)/2.
+    for n in xrange(1,N):
+        y=x*y+p[n]
+        mu=abs(x)*mu+abs(y)
+    mu=u*(2.*mu-abs(y))
+    return (y,mu)
