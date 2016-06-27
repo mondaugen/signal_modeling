@@ -16,14 +16,23 @@ plt.rc('font',family='serif')
 H=256
 # Analysis window / FFT size
 N=1024
-# Time points
-t_t=np.r_[0.,0.25,0.5]*1.
-# signal starts at 100 Hz, goes to 110Hz and ends at 105Hz
-f_t=np.r_[100.,200.,100.]
-# Amplitude constant
-A_t=np.ones(len(f_t))
 # Sample rate
 Fs=16000.
+
+# Time points freq
+t_t=np.r_[0.,0.25,0.5]*1.
+# signal frequency breakpoints (Hz)
+f_t=np.r_[100.,200.,100.]
+# Time points 
+t_a=np.r_[0.,0.1,0.3,0.5]*1.
+# sample indices at time points
+m_t=t_t*Fs
+# sample indices at time points
+m_t_a=t_a*Fs
+# signal amplitude breakpoints (dB)
+a_t=np.r_[-10,0,0,-10]
+# fit polynomial to amplitude function
+d_a=np.polyfit(m_t_a,np.log(10.**(a_t/20.)),len(a_t)-1)
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
@@ -35,8 +44,6 @@ w_t=f_t/Fs*2.*np.pi
 #print w_t
 # initial phase
 phi_0=0.
-# sample indices at time points
-m_t=t_t*Fs
 
 # Fit polynomial to frequency function
 d_=np.polyfit(m_t,w_t,len(w_t)-1)
@@ -44,7 +51,13 @@ d_=np.polyfit(m_t,w_t,len(w_t)-1)
 # coefficient
 d=np.polyint(d_,k=phi_0)
 # Synthesize signal
-x=np.exp(1j*np.polyval(d,m))
+arg_ph_x=np.polyval(d,m)
+with open(plotoutpath+'_arg_ph_x.f64','w') as f:
+    arg_ph_x.tofile(f)
+arg_a_x=np.polyval(d_a,m)
+with open(plotoutpath+'_arg_a_x.f64','w') as f:
+    arg_a_x.tofile(f)
+x=np.exp(1j*arg_ph_x)*np.exp(arg_a_x)
 
 # Estimated parameters
 th=[]
@@ -93,6 +106,10 @@ for h in np.arange(0,M-N,H):
 # Synthesize using McAulay & Quatieri cubic phase method
 h=0
 y=np.zeros(len(x)).astype('complex_')
+# Argument x of phase function exp(j*x)
+arg_ph=np.zeros(len(x)).astype('double')
+# Argument x of amplitude function exp(j*x)
+arg_a=np.zeros(len(x)).astype('double')
 for i in xrange(len(th)-1):
     phi_i0=th[i][0]
     phi_i1=th[i+1][0]
@@ -111,10 +128,19 @@ for i in xrange(len(th)-1):
             w_i0,
             phi_i0
     ]
-    y[h:h+H]=np.exp(1j*np.polyval(c,np.arange(H)))
+    arg_ph[h:h+H]=np.polyval(c,np.arange(H))
+    y[h:h+H]=np.exp(1j*arg_ph[h:h+H])
     # Linearly interpolate amplitude
-    y[h:h+H]*=np.interp(np.arange(H),np.r_[0,H],np.r_[A_i0,A_i1])
+    ex_arg_a_=np.interp(np.arange(H),np.r_[0,H],np.r_[A_i0,A_i1])
+    arg_a[h:h+H]=np.log(ex_arg_a_)
+    y[h:h+H]*=ex_arg_a_
     h+=H
+
+# Save phase and log-amplitude polynomials
+with open(plotoutpath+'_arg_ph.f64','w') as f:
+    arg_ph.tofile(f)
+with open(plotoutpath+'_arg_a.f64','w') as f:
+    arg_a.tofile(f)
 
 plt.figure(2)
 plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")

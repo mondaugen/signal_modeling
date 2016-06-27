@@ -21,14 +21,23 @@ H=256
 # Analysis window / FFT size
 N=1024
 
-# Time points
-t_t=np.r_[0.,0.25,0.5]*1.
-# signal starts at 100 Hz, goes to 110Hz and ends at 105Hz
-f_t=np.r_[100.,200.,100.]
-# Amplitude constant
-A_t=np.ones(len(f_t))
 # Sample rate
 Fs=16000.
+
+# Time points freq
+t_t=np.r_[0.,0.25,0.5]*1.
+# signal frequency breakpoints (Hz)
+f_t=np.r_[100.,200.,100.]
+# Time points 
+t_a=np.r_[0.,0.1,0.3,0.5]*1.
+# sample indices at time points
+m_t=t_t*Fs
+# sample indices at time points
+m_t_a=t_a*Fs
+# signal amplitude breakpoints (dB)
+a_t=np.r_[-10,0,0,-10]
+# fit polynomial to amplitude function
+d_a=np.polyfit(m_t_a,np.log(10.**(a_t/20.)),len(a_t)-1)
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
@@ -40,8 +49,6 @@ w_t=f_t/Fs*2.*np.pi
 #print w_t
 # initial phase
 phi_0=0.
-# sample indices at time points
-m_t=t_t*Fs
 
 # Fit polynomial to frequency function
 d_=np.polyfit(m_t,w_t,len(w_t)-1)
@@ -49,7 +56,13 @@ d_=np.polyfit(m_t,w_t,len(w_t)-1)
 # coefficient
 d=np.polyint(d_,k=phi_0)
 # Synthesize signal
-x=np.exp(1j*np.polyval(d,m))
+arg_ph_x=np.polyval(d,m)
+with open(plotoutpath+'_arg_ph_x.f64','w') as f:
+    arg_ph_x.tofile(f)
+arg_a_x=np.polyval(d_a,m)
+with open(plotoutpath+'_arg_a_x.f64','w') as f:
+    arg_a_x.tofile(f)
+x=np.exp(1j*arg_ph_x)*np.exp(arg_a_x)
 
 # Estimated parameters
 th=[]
@@ -90,6 +103,10 @@ eb_a=[]
 # Synthesize using modified McAulay & Quatieri quintic phase method
 h=0
 y=np.zeros(len(x)).astype('complex_')
+# Argument x of phase function exp(j*x)
+arg_ph=np.zeros(len(x)).astype('double')
+# Argument x of amplitude function exp(j*x)
+arg_a=np.zeros(len(x)).astype('double')
 for i in xrange(len(th)-1):
     phi_i0=np.imag(th[i][0])
     phi_i1=np.imag(th[i+1][0])
@@ -130,6 +147,7 @@ for i in xrange(len(th)-1):
     c=np.r_[c5,c4,c3,c2,c1,c0]
     # evaluate phase polynomial
     ph_,eb_ph_=sm.polyval_mu(c,np.arange(H))
+    arg_ph[h:h+H]=ph_
     eb_ph += list(eb_ph_)
     y[h:h+H]=np.exp(1j*ph_)
     # compute amplitude polynomial coefficients
@@ -175,11 +193,19 @@ for i in xrange(len(th)-1):
     d0=a0_i0
     d=np.r_[d5,d4,d3,d2,d1,d0]
    # Multiply by amplitude function
-    y[h:h+H]*=np.exp(np.polyval(d,np.arange(H)))
+    arg_a[h:h+H]=np.polyval(d,np.arange(H))
+    y[h:h+H]*=np.exp(arg_a[h:h+H])
     a_,eb_a_=sm.polyval_mu(d,np.arange(H))
     eb_a += list(eb_a_)
     y[h:h+H]*=np.exp(a_)
     h+=H
+
+# Save phase and log-amplitude polynomials
+with open(plotoutpath+'_arg_ph.f64','w') as f:
+    arg_ph.tofile(f)
+with open(plotoutpath+'_arg_a.f64','w') as f:
+    arg_a.tofile(f)
+
 
 plt.figure(2)
 plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
