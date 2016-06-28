@@ -28,6 +28,7 @@ Fs=16000.
 t_t=np.r_[0.,0.25,0.5]*1.
 # signal frequency breakpoints (Hz)
 f_t=np.r_[100.,200.,100.]
+#f_t=np.r_[100.,102.,100.]
 # Time points 
 t_a=np.r_[0.,0.1,0.3,0.5]*1.
 # sample indices at time points
@@ -193,11 +194,9 @@ for i in xrange(len(th)-1):
     d0=a0_i0
     d=np.r_[d5,d4,d3,d2,d1,d0]
    # Multiply by amplitude function
-    arg_a[h:h+H]=np.polyval(d,np.arange(H))
+    arg_a[h:h+H],eb_a_=sm.polyval_mu(d,np.arange(H))
     y[h:h+H]*=np.exp(arg_a[h:h+H])
-    a_,eb_a_=sm.polyval_mu(d,np.arange(H))
     eb_a += list(eb_a_)
-    y[h:h+H]*=np.exp(a_)
     h+=H
 
 # Save phase and log-amplitude polynomials

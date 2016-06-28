@@ -27,6 +27,7 @@ Fs=16000.
 t_t=np.r_[0.,0.25,0.5]*1.
 # signal frequency breakpoints (Hz)
 f_t=np.r_[100.,200.,100.]
+#f_t=np.r_[100.,102.,100.]
 # Time points 
 t_a=np.r_[0.,0.1,0.3,0.5]*1.
 # sample indices at time points

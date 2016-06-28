@@ -23,6 +23,7 @@ Fs=16000.
 t_t=np.r_[0.,0.25,0.5]*1.
 # signal frequency breakpoints (Hz)
 f_t=np.r_[100.,200.,100.]
+#f_t=np.r_[100.,102.,100.]
 # Time points 
 t_a=np.r_[0.,0.1,0.3,0.5]*1.
 # sample indices at time points
@@ -100,8 +101,11 @@ for h in np.arange(0,M-N,H):
         kma+=kma_
     else:
         Xma_=np.abs(X_)[kma]
+    # Linearly interpolate phase
+    ph_=np.interp(kma,np.r_[np.floor(kma),np.ceil(kma)],
+            np.r_[np.angle(X_[np.floor(kma)]),np.angle(X_[np.ceil(kma)])])
     # Store phase, frequency, amplitude
-    th.append([np.angle(X_[kma]),kma/float(N_fft)*2.*np.pi,Xma_])
+    th.append([ph_,kma/float(N_fft)*2.*np.pi,Xma_])
 
 # Synthesize using McAulay & Quatieri cubic phase method
 h=0
@@ -115,8 +119,14 @@ for i in xrange(len(th)-1):
     phi_i1=th[i+1][0]
     w_i0=th[i][1]
     w_i1=th[i+1][1]
-    A_i0=th[i][2]
-    A_i1=th[i+1][2]
+    ia_0=int(i-N/H/2)
+    ia_1=int(i-N/H/2+1)
+    if(ia_0 < 0):
+        ia_0=0
+    if(ia_1 < 0):
+        ia_1=0
+    A_i0=th[ia_0][2]
+    A_i1=th[ia_1][2]
     # Compute M*
     M=np.round((H/2.*(w_i1-w_i0)-(phi_i1-phi_i0-w_i0*H))/(2.*np.pi))
     # Compute polynomial coefficients
