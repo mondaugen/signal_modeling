@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import sigmod as sm
 import sys
 import ptpath as pp
@@ -7,6 +8,15 @@ from cvxopt import solvers
 from copy import deepcopy
 import ptpath_test as ppt
 import pickle
+import os
+
+show_plots=True
+
+plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+plotoutpath+='partial_estimation_acgtr_xylo_'
+
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
 
 # Read 1 channel float64 samples from standard in.
 # Split into sub-bands in frequency
@@ -16,7 +26,6 @@ import pickle
 
 # In this implementation, the path search can skip over frames containing no
 # nodes
-
 
 # Width of frequency block in bins, this is the width of the window used when
 # searching for peaks
@@ -287,6 +296,41 @@ print mc_adj
 f_avg=[]
 da_avg=[]
 
+
+plt.imshow(20.*np.log10(np.abs(Y)),
+        origin='lower',
+        aspect='auto',
+        interpolation='bilinear',
+        cmap="Greys")
+
+plt.ylim(0,M/2)
+plt.xlim(0,Y.shape[1])
+plt.title('Spectrogram')
+plt.ylabel('Frequency (KHz)')
+plt.xlabel('Sample number')
+newxlabels=[]
+newylabels=[]
+
+freq_scale=1000.
+def _ticks_spec_y_form(x,pos):
+    return '{:1.2f}'.format(x/float(M)*Fs/freq_scale)
+
+ticks_spec_x=ticker.FuncFormatter(lambda x, pos: '{0:d}'.format(int(x*H)))
+ticks_spec_y=ticker.FuncFormatter(_ticks_spec_y_form)
+plt.gca().xaxis.set_major_formatter(ticks_spec_x)
+plt.gca().yaxis.set_major_formatter(ticks_spec_y)
+plt.savefig(plotoutpath+'specgram.eps')
+#for xl in plt.gca().get_xticklabels():
+#    xl.set_text('%d' % (xl.get_position()[0]*H,))
+#    newxlabels.append(xl)
+#for yl in plt.gca().get_yticklabels():
+#    yl.set_text('%f' % (yl.get_position()[1]/float(M)*Fs,))
+#    newylabels.append(yl)
+#plt.gca().set_xticklabels(newxlabels)
+#plt.gca().set_yticklabels(newylabels)
+
+#plt.plot(np.zeros(len(f_hops)),f_hops,'bo')
+
 # Information associated with each partial
 p_info=[]
 for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
@@ -306,7 +350,7 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
                 n1=s_a[dst].frame_num+k_a
                 k0=np.imag(s_a[src].value[1])/(2.*np.pi)*M
                 k1=np.imag(s_a[dst].value[1])/(2.*np.pi)*M
-                plt.plot([n0,n1],[k0,k1],c='k')
+                plt.plot([n0,n1],[k0,k1],c='w')
                 _f_avg+=k0
                 _da_avg+=np.real(s_a[src].value[1])
                 _p_info.append([n0*H,s_a[src].value])
@@ -321,18 +365,26 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
 with open(fout,'w') as f:
     pickle.dump(p_info,f)
 
-plt.imshow(20.*np.log10(np.abs(Y)),origin='lower',aspect='auto',interpolation='nearest')
+plt.title('Spectrogram and partial trajectories')
 
-plt.plot(np.zeros(len(f_hops)),f_hops,'bo')
+plt.savefig(plotoutpath+'specgram_partials.eps')
 
 # plot path cost versus length
 plt.figure(2)
 print len(q_a),len(solc_a)
 for q_,c_ in zip(q_a,solc_a):
-    plt.plot(len(q_),c_/len(q_),'b.')
+    plt.plot(len(q_),c_/len(q_),'k.')
 
 mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
-plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj)
+plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj,'k')
+plt.xlabel('Path length (hops)')
+plt.ylabel('$( \\boldsymbol{c}^{T}\\boldsymbol{x}-1 ) \\times 10^5$')
+plt.title('Path cost vs. length and thresholding boundary.')
+plt.xlim(0,max([len(q_) for q_ in q_a]))
+cost_scale=1e5
+ticks_y=ticker.FuncFormatter(lambda x, pos: '{0:1.2f}'.format((x-1)*cost_scale))
+plt.gca().yaxis.set_major_formatter(ticks_y)
+plt.savefig(plotoutpath+'pcost_vs_bound.eps')
 
 for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
     if (_f_avg>0.):
@@ -340,5 +392,6 @@ for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
         plt.scatter([len(q_)],[1./_f_avg])
         plt.figure(4)
         plt.scatter([_f_avg],[_da_avg])
+
 
 plt.show()

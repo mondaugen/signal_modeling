@@ -2,9 +2,20 @@ import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import pickle
 import sigmod as sm
 import sklearn.mixture
+import os
+
+plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+plotoutpath+='partial_classification_acgtr_xylo_'
+
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
+
+# translucent grey
+alphagrey=colors.ColorConverter().to_rgba('grey')[:3]+(0.5,)
 
 # Load partials from file 1
 fname_ptls_out='tmp/xylo_fs4_ac_gtr_a3_sr16k.ptls'
@@ -18,7 +29,7 @@ Fs=16000
 H=512
 
 # Plotting stuff
-mpl.rcParams['legend.fontsize'] = 10
+#mpl.rcParams['legend.fontsize'] = 10
 
 fig1 = plt.figure(1)
 ax = fig1.gca(projection='3d')
@@ -48,7 +59,7 @@ for p in p_info:
         f_avg_calc.append(np.imag(p[0][1][1]))
 ax4.set_title('Starting amplitude vs frequency')
 ax4.set_xlabel('Frequency (radians/s)')
-ax4.set_ylabel('Amplitude (log(A))')
+ax4.set_ylabel('Log-Amplitude')
 
 # Calculate line function for thresholding initial amplitude values of partials
 # If starting values of amplitude under this value, these partials are
@@ -87,7 +98,7 @@ for p in p_info:
 #        ax.plot(tpts,fpts,apts,c='g')
         tpts=np.array(tpts)
         # Plot linearly interpolated data (3D)
-        ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c='b')
+        ax.plot(tpts,th_f[0]+th_f[1]*tpts,th_a[0]+th_a[1]*tpts,c=alphagrey,lw=2.)
         # Plot linearly interpolated data (2D)
         ax3.plot(tpts/float(H),th_f[0]+th_f[1]*tpts,'b')
 #        X.append([np.log(float(len(fpts))),th_f[0],th_a[0]])
@@ -95,10 +106,13 @@ for p in p_info:
         ptls.append([tpts,fpts,apts,th_f,th_a,p])
         len_pi+=1
 
+
 ax.set_xlabel('Time (samples)')
 ax.set_ylabel('Frequency (Hz)')
-ax.set_zlabel('Amplitude (log(A))')
+ax.set_zlabel('Log-Amplitude')
 ax.set_title('Partial trajectories')
+# Azimuth 54, elevation 19
+ax.view_init(19,54)
 
 ax3.set_xlabel('Time (samples)')
 ax3.set_ylabel('Frequency (Hz)')
@@ -106,7 +120,7 @@ ax3.set_title('Partial trajectories')
 
 X=np.array(X).T
 A=sm.pca_ne(X,'cov')
-ax2.scatter(A[0,:],A[1,:],c='b')
+ax2.scatter(A[0,:],A[1,:],c='k')
 ax2.set_title('Unknown memberships')
 ax2.set_xlabel('1st PC')
 ax2.set_ylabel('2nd PC')
@@ -149,7 +163,7 @@ print A_Z[a_lma_arg_r,a_lma_arg_c]
 print a_lma_ma,a_lma_mi
 
 #np.exp(-((A_y[j]+4.)**2.+A_x[i]+3000.)**2.)#_krnl(np.array([A_y[j],A_x[i]]),A.T)
-ax2.contour(A_X,A_Y,A_Z)
+ax2.contour(A_X,A_Y,A_Z,cmap='Greys')
 ax2.plot(A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
         A_y[a_lma_arg_r[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],'kx')
 
@@ -172,8 +186,8 @@ print gmm.covars_
 
 m1_idx=np.where(gmm_grps==0)[0]
 m2_idx=np.where(gmm_grps==1)[0]
-ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='g')
-ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='b')
+ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='k')
+ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='grey')
 ax5.set_title('Estimated memberships')
 ax5.set_xlabel('1st PC')
 ax5.set_ylabel('2nd PC')
