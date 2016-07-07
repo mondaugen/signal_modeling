@@ -5,7 +5,13 @@ import matplotlib.pyplot as plt
 import pickle
 import sigmod as sm
 import sklearn.mixture
+import os
 
+plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+plotoutpath+='partial_classification_acgtr_xylo_sep_'
+
+plt.rc('text',usetex=True)
+plt.rc('font',family='serif')
 
 # Load partials from file 1
 with open('tmp/ac_gtr_a3_op_sr16k.pardat','r') as f:
@@ -20,7 +26,7 @@ Fs=16000
 H=512
 
 # Plotting stuff
-mpl.rcParams['legend.fontsize'] = 10
+#mpl.rcParams['legend.fontsize'] = 10
 
 fig1 = plt.figure(1)
 ax = fig1.gca(projection='3d')
@@ -127,11 +133,13 @@ ax3.set_title('Partial trajectories')
 
 X=np.array(X).T
 A=sm.pca_ne(np.c_[np.log(X[0,:]),X[1,:]].T,'cov')
-ax2.scatter(A[0,:len_pi1],A[1,:len_pi1],c='g')
-ax2.scatter(A[0,len_pi1:],A[1,len_pi1:],c='b')
-ax2.set_title('True memberships')
-ax2.set_xlabel('1st PC')
-ax2.set_ylabel('2nd PC')
+ax2.scatter(A[0,:len_pi1],A[1,:len_pi1],c='k',lw=0,label='Guitar')
+ax2.scatter(A[0,len_pi1:],A[1,len_pi1:],c='grey',lw=0,label='Xylophone')
+ax2.set_title('Log-partial-length vs. frequency: principle components')
+ax2.set_xlabel('$a_{0}$')
+ax2.set_ylabel('$a_{1}$')
+ax2.legend(loc='upper left')
+fig2.savefig(plotoutpath+'true_memberships.eps')
 
 # Convolve data points with kernels
 A_x=np.linspace(A[0,:].min(),A[0,:].max(),num=100)
