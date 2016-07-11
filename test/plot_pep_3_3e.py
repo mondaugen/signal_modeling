@@ -10,8 +10,7 @@ import os
 import matplotlib.ticker as ticker
 
 # Note: some plots produced as pdf instead of eps to preserve transparency.
-# use pdftops to convert to eps. This seems to preserve transparency whereas
-# direct rendering to eps from matplotlib does not.
+# Render using pdflatex
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='partial_classification_acgtr_xylo_'
@@ -186,7 +185,6 @@ ax2.contour(A_X,A_Y,A_Z,cmap='Greys')
 ax2.plot(A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
         A_y[a_lma_arg_r[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],'kx')
 
-
 # Classify partials using amplitude modulation
 # GMM weight adjustment parameter
 # Maximum weight multiplied by gmm_w_th
@@ -201,7 +199,6 @@ gmm.weights_=np.array([a_lma_ma*gmm_w_th/(a_lma_ma*gmm_w_th+a_lma_mi),
 gmm.means_=gmm_means
 gmm_grps=gmm.fit_predict(A[:2,:].T)
 print gmm.covars_
-
 
 m1_idx=np.where(gmm_grps==0)[0]
 m2_idx=np.where(gmm_grps==1)[0]
