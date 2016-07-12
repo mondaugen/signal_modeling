@@ -81,6 +81,7 @@ n=(0:opt.H:(opt.N-1));
 n=n(:);
 rp=struct();
 t=n/opt.Fs;
+dt=t(2)-t(1);
 Pxm=cell();
 n=1;
 for t_=t'
@@ -117,12 +118,16 @@ for t_=t'
         error(sprintf('Bad A_method %s\n',opt.A_method));
     end
     % Reassigned frequency parameters
+    psirand=randn(opt.K,1)*psi_sd;
+    wrand=psirand*dt+randn(opt.K,1)*opt.w_no;
+    phirand=wrand*dt;
     rp.w_r=2*pi*(opt.f0+opt.A_fm*sin(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B'/opt.Fs;
-    rp.w_r.*=1+randn(opt.K,1)*opt.w_no;
+    rp.w_r+=wrand;
     rp.psi_r=(2*pi)^2*opt.A_fm*opt.f_fm*cos(2*pi*opt.f_fm*t_+opt.phi_fm)*opt.k_B'/(opt.Fs^2);
-    rp.psi_r.+=randn(opt.K,1)*psi_sd;
+    rp.psi_r.+=psirand;
     % Initial phase
     rp.phi_r=opt.phi+2*pi*(opt.f0*t_-opt.A_fm/(2*pi*opt.f_fm)*cos(2*pi*opt.f_fm*t_+opt.phi_fm))*opt.k_B';
+    rp.phi_r+=phirand;
     rp.X_r_.*=exp(j*rp.phi_r);
     Pxm{n}=rp;
     n=n+1;
