@@ -45,16 +45,23 @@ ps_bg_s='.'
 
 datin=sio.loadmat(infilepath)['datout'][0]
 h=0
+lgd=[[],[]]
 for i in xrange(len(datin)):
     X_plt_orig=datin[i]['X_plt_orig'][0][0]
     w0_o=X_plt_orig[:,0]+(-0.5)*X_plt_orig[:,1]*H
     w1_o=X_plt_orig[:,0]+(0.5)*X_plt_orig[:,1]*H
     N_w0_o=len(w0_o)
     h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
-    ax1.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_s1)
-    ax1.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_s2)
-#    ax1.legend()
+    h_o/=Fs
+    lgd[0]=ax1.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_s1)[0]
+    lgd[1]=ax1.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_s2)[0]
     h+=H
+ax1.set_xlabel('Time (seconds)')
+# Why undefined sequence?
+ax1.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax1.set_title('Original data-points')
+ax1.set_xlim(0,(h-H)/float(Fs))
+ax1.legend(lgd,('Source 1','Source 2'))
 
 h=0
 for i in xrange(len(datin)):
@@ -63,10 +70,17 @@ for i in xrange(len(datin)):
     w1=X_plt[:,0]+(0.5)*X_plt[:,1]*H
     N_w0=len(w0)
     h_=h+H*np.c_[-0.5*np.ones(N_w0),0.5*np.ones(N_w0)]
+    h_/=float(Fs)
     ax2.plot(h_.T,np.c_[w0,w1].T,'k')
     h+=H
+ax2.set_xlim(0,(h-H)/float(Fs))
+ax2.set_ylim(0,3.5)
+ax2.set_xlabel('Time (seconds)')
+ax2.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax2.set_title('Original and spurious data-points')
 
 h=0
+lgd=[[],[],[]]
 for i in xrange(len(datin)):
     X_plt_est=datin[i]['X_plt'][0][0]
     clr_e=datin[i]['clr_'][0][0]
@@ -74,42 +88,63 @@ for i in xrange(len(datin)):
     w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
     N_w0_e=len(w0_e)
     h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
+    h_e/=float(Fs)
     for r in np.c_[h_e,w0_e,w1_e,clr_e]:
         # Source 1 'b'
         if (r[4]=='b'):
             ls_=ls_s1
+            lgd_idx=0
         # Source 2 'c'
         elif (r[4]=='c'):
             ls_=ls_s2
+            lgd_idx=1
         else:
             ls_=ls_bg
-        ax3.plot(r[0:2],r[2:4],ls_)
+            lgd_idx=2
+        lgd[lgd_idx]=ax3.plot(r[0:2],r[2:4],ls_)[0]
     h+=H
+ax3.set_xlabel('Time (seconds)')
+ax3.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax3.set_title('Classified data-points')
+ax3.legend(lgd,('Source 1','Source 2','Spurious'))
+ax3.set_xlim(0,(h-H)/float(Fs))
+ax3.set_ylim(0,3.5)
 
 h=0
+lgd=[[],[],[]]
 for i in xrange(len(datin)):
     A_pca=datin[i]['A_pca'][0][0]
     clr_e=datin[i]['clr_'][0][0]
     a0=A_pca[:,0]
     N_a0=len(a0)
     h_e=h+H*np.c_[np.ones(N_a0)]
+    h_e/=float(Fs)
     for r in np.c_[h_e,a0,clr_e]:
         # Source 1 'b'
         if (r[2]=='b'):
             ls_s=ps_s1_s
             ls_c=ps_s1_c
             lw_=0
+            lgd_idx=0
         # Source 2 'c'
         elif (r[2]=='c'):
             ls_s=ps_s2_s
             ls_c=ps_s2_c
             lw_=0
+            lgd_idx=1
         else:
             ls_s=ps_bg_s
             ls_c=ps_bg_c
             lw_=0
-        ax4.scatter(r[0],r[1],marker=ls_s,c=ls_c,lw=lw_)
+            lgd_idx=2
+        lgd[lgd_idx]=ax4.scatter(r[0],r[1],marker=ls_s,c=ls_c,lw=lw_)
     h+=H
+ax4.set_xlabel('Time (seconds)')
+ax4.set_ylabel('1st PC')
+ax4.set_title('Principal components and their classification')
+ax4.legend(lgd,('Source 1','Source 2','Spurious'))
+ax4.set_xlim(0.2,0.3)
+ax4.set_ylim(-0.0012,0.0012)
 
 if (show_plots):
     plt.show()
