@@ -585,3 +585,17 @@ def polyval_mu(p,x):
         mu=abs(x)*mu+abs(y)
     mu=u*(2.*mu-abs(y))
     return (y,mu)
+
+def best_path_viterbi(C):
+    """
+    Find the single best path through a lattice using the viterbi algorithm.
+
+        C:
+            a list of 2D (numpy) arrays. C[n][i,j] is the cost of going from
+            node i in frame n to node j in frame n+1.
+
+    Returns:
+        q:
+            A
+
+        
