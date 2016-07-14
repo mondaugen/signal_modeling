@@ -586,16 +586,48 @@ def polyval_mu(p,x):
     mu=u*(2.*mu-abs(y))
     return (y,mu)
 
-def best_path_viterbi(C):
+def best_path_viterbi(A,mode='min'):
     """
     Find the single best path through a lattice using the viterbi algorithm.
 
-        C:
-            a list of 2D (numpy) arrays. C[n][i,j] is the cost of going from
+        A:
+            a list of 2D (numpy) arrays. A[n][i,j] is the cost of going from
             node i in frame n to node j in frame n+1.
+        mode:
+            if 'min' (default) finds the shortest path.
+            if 'max', finds the longest path.
 
     Returns:
         q:
-            A
+            A list of indices describing the nodes visited on the best path.
+        p:
+            The cost of the best path.
+    """
+    # Lengths at each index
+    T=len(A)
+    K=[a.shape[0] for a in A]
+    K.append(A[-1].shape[1])
+    D=[np.ndarray((k,),dtype='float64') for k in K]
+    P=[np.ndarray((k,),dtype='int') for k in K]
+    q=np.ndarray((T,),dtype='int')
+    D[0][:]=0.
+    P[0][:]=0
+    if (mode=='min'):
+        arg_extrem=np.argmin
+    elif (mode=='max'):
+        arg_extrem=np.argmax
+    else:
+        raise Exception('Bad mode: %s' % (mode,))
 
-        
+    for t in xrange(1,T):
+        for j in xrange(K[t]):
+            D_A_=(D[t-1]+A[t-1][:,j])
+            i_=arg_extrem(D_A_)
+            P[t][j]=i_
+            D[t][j]=D_A_[i_]
+    q[T-1]=arg_extrem(D[T-1])
+    p=D[T-1][q[T-1]]
+    # backtrack to find best path
+    for t in np.arange(T-2,-1,-1):
+        q[t]=P[t+1][q[t+1]]
+    return (q,p)
