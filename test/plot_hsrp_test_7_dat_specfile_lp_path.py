@@ -15,23 +15,20 @@ plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
-show_plots=False
-#show_plots=True
+#show_plots=False
+show_plots=True
 infilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 
-if (len(sys.argv) == 3):
-    infilepath+='hsrp_test_7_%d.dat'
-    outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-    fname_idx0=int(sys.argv[1])
-    fname_idx1=int(sys.argv[2])
-    outfilepath+='hsrp_test_7_plot_%d-%d_' % (fname_idx0,fname_idx1)
-else:
-    infilepath+='hsrp_test_7.dat'
-    outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-    outfilepath+='hsrp_test_7_plot_'
-    fname_idx0=0
-    fname_idx1=0
+if (len(sys.argv) != 2):
+    raise Exception('Specify file.')
+if not sys.argv[1].endswith('.dat'):
+    raise Exception('File must end with .dat')
 
+infilepath+=sys.argv[1]
+outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+outfilepath+=sys.argv[1][:sys.argv[1].rfind('.dat')]+'_plot_'
+fname_idx0=0
+fname_idx1=0
 
 # Original data
 fig1=plt.figure(1)
@@ -63,6 +60,18 @@ ax9=fig9.gca()
 # 2nd estimated source only, J best path connection
 fig10=plt.figure(10)
 ax10=fig10.gca()
+# 1st estimated source only, J best path connection
+fig11=plt.figure(11)
+ax11=fig11.gca()
+# 2nd estimated source only, J best path connection
+fig12=plt.figure(12)
+ax12=fig12.gca()
+# 1st estimated source only, J best path connection
+fig13=plt.figure(13)
+ax13=fig13.gca()
+# 2nd estimated source only, J best path connection
+fig14=plt.figure(14)
+ax14=fig14.gca()
 
 # Hop size
 H=256
@@ -107,6 +116,11 @@ lgd_ax7=[[],[]]
 lgd_ax8=[[],[]]
 lgd_ax9=[[],[]]
 lgd_ax10=[[],[]]
+lgd_ax11=[[],[]]
+lgd_ax12=[[],[]]
+lgd_ax13=[[],[]]
+lgd_ax14=[[],[]]
+
 
 for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
 
@@ -114,6 +128,10 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         datin=sio.loadmat(infilepath % (fname_idx_,))['datout'][0]
     else:
         datin=sio.loadmat(infilepath)['datout'][0]
+    # Theoretical signal
+    x_s1_th=np.zeros((len(datin)*H,),dtype='complex_')
+    # Theoretical signal
+    x_s2_th=np.zeros((len(datin)*H),dtype='complex_')
 
     h=0
     for i in xrange(len(datin)):
@@ -228,7 +246,7 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         for r in np.c_[h_e,w0_e,w1_e,clr_e]:
             # Source 1 'b'
             if (r[4]=='b'):
-                ls_=ls_s1
+                ls_='k-'#ls_s1
                 lgd_ax5_idx=0
                 lgd_ax5[lgd_ax5_idx]=ax5.plot(r[0:2],r[2:4],ls_)[0]
         X_plt_orig=datin[i]['X_plt_orig'][0][0]
@@ -237,7 +255,7 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
-        lgd_ax5[1]=ax5.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
+#        lgd_ax5[1]=ax5.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
         h+=H
     
     h=0
@@ -252,7 +270,7 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         for r in np.c_[h_e,w0_e,w1_e,clr_e]:
             # Source 2 'c'
             if (r[4]=='c'):
-                ls_=ls_s2
+                ls_='k-'#ls_s2
                 lgd_ax6_idx=0
                 lgd_ax6[lgd_ax6_idx]=ax6.plot(r[0:2],r[2:4],ls_)[0]
         X_plt_orig=datin[i]['X_plt_orig'][0][0]
@@ -261,199 +279,193 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
-        lgd_ax6[1]=ax6.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
+#        lgd_ax6[1]=ax6.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
         h+=H
     
     # Arrays of start and end frequencies for each frame, each column corresponds to
     # a priori source
-    W_ap=list()
+    F_lp=list()
+    S_lp=dict()
+    n_node_lp=0
     for i in xrange(len(datin)):
-        X_plt_est=datin[i]['X_plt'][0][0]
+        X_plt_est=np.c_[datin[i]['X_plt'][0][0],
+                        datin[i]['lA_plt'][0][0],
+                        datin[i]['X'][0][0][:,1]]
         clr_e=datin[i]['clr_'][0][0]
-        w0_e=X_plt_est[:,0]+(-0.5)*X_plt_est[:,1]*H
-        w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
-        N_w0_e=len(w0_e)
-        h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
-        h_e/=float(Fs)
-        w0_s1=[]
-        w1_s1=[]
-        w0_s2=[]
-        w1_s2=[]
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
-            if (r[4]=='b'):
-                w0_s1.append(float(r[2]))
-                w1_s1.append(float(r[3]))
-            elif (r[4]=='c'):
-                w0_s2.append(float(r[2]))
-                w1_s2.append(float(r[3]))
-        W_ap.append([np.array([w0_s1,w1_s1]),np.array([w0_s2,w1_s2])])
-    
-    # list storing the uncertainty of the classification of a set of partials
-    uc=list()
-    for i in xrange(len(W_ap)):
-        # index 0 is uncertainty in keeping source classifications the way they are
-        # index 1 is uncertainty in swapping them
-        uc.append(np.zeros((2,),dtype='float64'))
-        for c_W_ap in xrange(len(W_ap[i])):
-            for c_1_W_ap in xrange(len(W_ap[i])):
-                uc_=0.
-                if (i>0):
-                    # Backwards uncertainty
-                    D_=np.abs(np.subtract.outer(W_ap[i][c_W_ap][0,:],W_ap[i-1][c_1_W_ap][1,:]))
-                    mindim=np.array(D_.shape).argmin()
-                    D_min=D_.min(mindim)
-                    uc_+=np.sum(D_min)/len(D_min)
-                if (i<(len(W_ap)-1)):
-                    # Forwards uncertainty
-                    D_=np.abs(np.subtract.outer(W_ap[i][c_W_ap][1,:],W_ap[i+1][c_1_W_ap][0,:]))
-                    mindim=np.array(D_.shape).argmin()
-                    D_min=D_.min(mindim)
-                    uc_+=np.sum(D_min)/len(D_min)
-                # if on second column, comparing with first column is swapping,
-                # if on first column, comparing with second column is swapping
-                swp_idx=(c_W_ap+c_1_W_ap)%2
-                uc[-1][swp_idx]+=uc_
-    
-    # LP to solve best J swaps
-    # solve
-    # minimize gain in uncertainty in swapping, i.e.,
-    # min (uc[:,1]-uc[:,0])^T*x
-    # s.t
-    # 1^T*x = J
-    # 0 < x < 1
-    J_lp=3.
-    uc_ary=np.array(uc)
-    c_lp=cvxopt.matrix(uc_ary[:,1]-uc_ary[:,0])
-    A_lp=cvxopt.matrix(np.array([np.ones(len(c_lp))]))
-    b_lp=cvxopt.matrix(np.array([[J_lp]]))
-    G_lp=cvxopt.matrix(np.concatenate((np.eye(len(c_lp)),-1.*np.eye(len(c_lp)))))
-    h_lp=cvxopt.matrix(np.concatenate((np.ones((len(c_lp),)),np.zeros((len(c_lp),)))))
-    sol_lp=solvers.lp(c_lp,G_lp,h_lp,A_lp,b_lp)
-    q_likely_lp=sol_lp['x']
-    #print q_likely
-    q_likely=[uc_.argmin() for uc_ in uc]
-    
+        x0_s1=[]
+        x0_s2=[]
+        cls_e=np.ndarray((len(clr_e),),dtype='float64')
+        for j in xrange(len(clr_e)):
+            if clr_e[j]=='b':
+                cls_e[j]=1.
+            elif clr_e[j]=='c':
+                cls_e[j]=2.
+            else:
+                cls_e[j]=0.
+        for r in np.c_[X_plt_est,cls_e]:
+            if (r[4]==1.):
+                x0_s1.append(r[0:4])
+            elif (r[4]==2.):
+                x0_s2.append(r[0:4])
+        S_lp[n_node_lp]=ptpath.LPNode(value=np.array(x0_s1),frame_num=i)
+        S_lp[n_node_lp+1]=ptpath.LPNode(value=np.array(x0_s2),frame_num=i)
+        F_lp.append([n_node_lp,n_node_lp+1])
+        n_node_lp+=2
+    for i in xrange(len(F_lp)-1):
+        for j in F_lp[i]:
+            S_lp[j].out_nodes=F_lp[i+1]
+        for j in F_lp[i+1]:
+            S_lp[j].in_nodes=F_lp[i]
+
+    def _lpnode_dist_fun_f(a,b):
+        tmp1_=a.value[:,0]+a.value[:,1]*float(H)*(b.frame_num-a.frame_num)
+        rslt1=np.abs(np.subtract.outer(tmp1_,b.value[:,0]))
+        min_dim=np.array(rslt1.shape).argmin()
+        min_cxns=rslt1.min(min_dim)
+        n_min_cxns=len(min_cxns)
+        rslt1=np.sum(min_cxns)/n_min_cxns
+        return rslt1
+
+    def _lpnode_dist_fun_a(a,b):
+        tmp2_=a.value[:,2]+a.value[:,3]*float(H)*(b.frame_num-a.frame_num)
+        rslt2=np.abs(np.subtract.outer(tmp2_,b.value[:,2]))
+        min_dim=np.array(rslt2.shape).argmin()
+        min_cxns=rslt2.min(min_dim)
+        n_min_cxns=len(min_cxns)
+        rslt2=np.sum(min_cxns)/n_min_cxns
+        return rslt2
+
+    # Smooth frequency path
+    J_lp=2
+    D_lp=ptpath.g_f_2lp(S_lp,F_lp,J_lp,
+            cost_func=_lpnode_dist_fun_f,
+            opt={'calc_mean':0,'min_mean_dev':0})
+
+    sol_lp=solvers.lp(D_lp['c'],D_lp['G'],D_lp['h'],D_lp['A'],D_lp['b'])
+    q_lp=ptpath_test.lp_sol_extract_paths(sol_lp['x'],S_lp,F_lp)
+
+    # last phases
+    phi_s1_th=np.zeros((K,))
     h=0
-    for i,q_ in zip(xrange(len(datin)),q_likely):
+    for i,q_ in zip(xrange(len(datin)),q_lp[0]):
         q_=int(round(q_))
-        X_plt_est=datin[i]['X_plt'][0][0]
-        clr_e=datin[i]['clr_'][0][0]
+        X_plt_est=S_lp[q_].value
         w0_e=X_plt_est[:,0]+(-0.5)*X_plt_est[:,1]*H
         w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        if (q_==1):
-            _clr='c'
-        else:
-            _clr='b'
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
-            if (r[4]==_clr):
-                ls_=ls_s1
-                lgd_ax7_idx=0
-                lgd_ax7[lgd_ax7_idx]=ax7.plot(r[0:2],r[2:4],ls_)[0]
-        X_plt_orig=datin[i]['X_plt_orig'][0][0]
+        for r in np.c_[h_e,w0_e,w1_e]:
+            ls_='k-'#ls_s1
+            lgd_ax7_idx=0
+            lgd_ax7[lgd_ax7_idx]=ax7.plot(r[0:2],r[2:4],ls_)[0]
+        X_plt_orig=datin[i]['X_plt_orig'][0][0][:K,:]
         w0_o=X_plt_orig[:,0]+(-0.5)*X_plt_orig[:,1]*H
         w1_o=X_plt_orig[:,0]+(0.5)*X_plt_orig[:,1]*H
+        n_=np.arange(H)
+        wn0_=X_plt_orig[:,0]
+        wn1_=X_plt_orig[:,0]+X_plt_orig[:,1]*H
+        dwn_=(wn1_-wn0_)/float(H)
+        ph_=phi_s1_th[:,np.newaxis]+np.multiply.outer(wn0_,n_)+np.multiply.outer(dwn_,n_**2.)
+        phi_s1_th+=wn0_*H+dwn_*H**2.
+        lA_plt_orig=datin[i]['lA_plt_orig'][0][0][:K]
+        mu_orig=datin[i]['X_orig'][0][0][:K,1]
+        la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
+        x_s1_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
-        lgd_ax7[1]=ax7.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
+#        lgd_ax7[1]=ax7.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
+        lgd_ax9[0]=ax9.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
         h+=H
-    
+
+    # last phases
+    phi_s2_th=np.zeros((K,))
     h=0
-    for i,q_ in zip(xrange(len(datin)),q_likely):
+    for i,q_ in zip(xrange(len(datin)),q_lp[1]):
         q_=int(round(q_))
-        X_plt_est=datin[i]['X_plt'][0][0]
-        clr_e=datin[i]['clr_'][0][0]
+        X_plt_est=S_lp[q_].value
         w0_e=X_plt_est[:,0]+(-0.5)*X_plt_est[:,1]*H
         w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        if (q_==1):
-            _clr='b'
-        else:
-            _clr='c'
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
-            if (r[4]==_clr):
-                ls_=ls_s2
-                lgd_ax8_idx=0
-                lgd_ax8[lgd_ax8_idx]=ax8.plot(r[0:2],r[2:4],ls_)[0]
-        X_plt_orig=datin[i]['X_plt_orig'][0][0]
+        for r in np.c_[h_e,w0_e,w1_e]:
+            ls_='k-'#ls_s2
+            lgd_ax8_idx=0
+            lgd_ax8[lgd_ax8_idx]=ax8.plot(r[0:2],r[2:4],ls_)[0]
+        X_plt_orig=datin[i]['X_plt_orig'][0][0][K:,:]
         w0_o=X_plt_orig[:,0]+(-0.5)*X_plt_orig[:,1]*H
         w1_o=X_plt_orig[:,0]+(0.5)*X_plt_orig[:,1]*H
+        n_=np.arange(H)
+        wn0_=X_plt_orig[:,0]
+        wn1_=X_plt_orig[:,0]+X_plt_orig[:,1]*H
+        dwn_=(wn1_-wn0_)/float(H)
+        ph_=phi_s2_th[:,np.newaxis]+np.multiply.outer(wn0_,n_)+np.multiply.outer(dwn_,n_**2.)
+        phi_s2_th+=wn0_*H+dwn_*H**2.
+        lA_plt_orig=datin[i]['lA_plt_orig'][0][0][K:]
+        mu_orig=datin[i]['X_orig'][0][0][K:,1]
+        la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
+        x_s2_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
-        lgd_ax8[1]=ax8.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
+#        lgd_ax8[1]=ax8.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
+        lgd_ax10[0]=ax10.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
         h+=H
-    
+
+    # Smooth amplitude path
+    J_lp=2
+    D_lp=ptpath.g_f_2lp(S_lp,F_lp,J_lp,
+            cost_func=_lpnode_dist_fun_a,
+            opt={'calc_mean':0,'min_mean_dev':0})
+
+    sol_lp=solvers.lp(D_lp['c'],D_lp['G'],D_lp['h'],D_lp['A'],D_lp['b'])
+    q_lp=ptpath_test.lp_sol_extract_paths(sol_lp['x'],S_lp,F_lp)
+
     h=0
-    for i,q_ in zip(xrange(len(datin)),q_likely_lp):
+    for i,q_ in zip(xrange(len(datin)),q_lp[0]):
         q_=int(round(q_))
-        X_plt_est=datin[i]['X_plt'][0][0]
-        clr_e=datin[i]['clr_'][0][0]
+        X_plt_est=S_lp[q_].value
         w0_e=X_plt_est[:,0]+(-0.5)*X_plt_est[:,1]*H
         w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        if (q_==1):
-            _clr='c'
-        else:
-            _clr='b'
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
-            if (r[4]==_clr):
-                ls_=ls_s1
-                lgd_ax9_idx=0
-                lgd_ax9[lgd_ax9_idx]=ax9.plot(r[0:2],r[2:4],ls_)[0]
-        X_plt_orig=datin[i]['X_plt_orig'][0][0]
-        w0_o=X_plt_orig[:,0]+(-0.5)*X_plt_orig[:,1]*H
-        w1_o=X_plt_orig[:,0]+(0.5)*X_plt_orig[:,1]*H
-        N_w0_o=len(w0_o)
-        h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
-        h_o/=Fs
-        lgd_ax9[1]=ax9.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
+        for r in np.c_[h_e,w0_e,w1_e]:
+            ls_='k-'#ls_s1
+            lgd_ax11_idx=0
+            lgd_ax11[lgd_ax7_idx]=ax11.plot(r[0:2],r[2:4],ls_)[0]
         h+=H
-    
+
     h=0
-    for i,q_ in zip(xrange(len(datin)),q_likely_lp):
+    for i,q_ in zip(xrange(len(datin)),q_lp[1]):
         q_=int(round(q_))
-        X_plt_est=datin[i]['X_plt'][0][0]
-        clr_e=datin[i]['clr_'][0][0]
+        X_plt_est=S_lp[q_].value
         w0_e=X_plt_est[:,0]+(-0.5)*X_plt_est[:,1]*H
         w1_e=X_plt_est[:,0]+(0.5)*X_plt_est[:,1]*H
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        if (q_==1):
-            _clr='b'
-        else:
-            _clr='c'
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
-            if (r[4]==_clr):
-                ls_=ls_s2
-                lgd_ax10_idx=0
-                lgd_ax10[lgd_ax10_idx]=ax10.plot(r[0:2],r[2:4],ls_)[0]
-        X_plt_orig=datin[i]['X_plt_orig'][0][0]
-        w0_o=X_plt_orig[:,0]+(-0.5)*X_plt_orig[:,1]*H
-        w1_o=X_plt_orig[:,0]+(0.5)*X_plt_orig[:,1]*H
-        N_w0_o=len(w0_o)
-        h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
-        h_o/=Fs
-        lgd_ax10[1]=ax10.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
+        for r in np.c_[h_e,w0_e,w1_e]:
+            ls_='k-'#ls_s2
+            lgd_ax12_idx=0
+            lgd_ax12[lgd_ax8_idx]=ax12.plot(r[0:2],r[2:4],ls_)[0]
         h+=H
+
+ax13.specgram(x_s1_th,Fs=2.*np.pi)
+ax14.specgram(x_s2_th,Fs=2.*np.pi)
+        
 
 ax6.set_xlabel('Time (seconds)')
 ax6.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax6.set_title('Source 2 without swaps')
+ax6.set_title('Source 2 (estimated)')
 ax6.set_xlim(0,(h-H)/float(Fs))
 ax6.set_ylim(0,3.5)
 
 ax5.set_xlabel('Time (seconds)')
 ax5.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax5.set_title('Source 1 without swaps')
+ax5.set_title('Source 1 (estimated)')
 ax5.set_xlim(0,(h-H)/float(Fs))
 ax5.set_ylim(0,3.5)
 
@@ -482,25 +494,37 @@ ax1.set_xlim(0,(h-H)/float(Fs))
 
 ax7.set_xlabel('Time (seconds)')
 ax7.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax7.set_title('Source 1 after all gainful swaps')
+ax7.set_title('Source 1 (estimated) after smooth frequency path search')
 ax7.set_xlim(0,(h-H)/float(Fs))
 ax7.set_ylim(0,3.5)
 
 ax8.set_xlabel('Time (seconds)')
 ax8.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax8.set_title('Source 2 after all gainful swaps')
+ax8.set_title('Source 2 (estimated) after smooth frequency path search')
 ax8.set_xlim(0,(h-H)/float(Fs))
 ax8.set_ylim(0,3.5)
 
+ax11.set_xlabel('Time (seconds)')
+ax11.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax11.set_title('Source 1 (estimated) after smooth amplitude path search')
+ax11.set_xlim(0,(h-H)/float(Fs))
+ax11.set_ylim(0,3.5)
+
+ax12.set_xlabel('Time (seconds)')
+ax12.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax12.set_title('Source 2 (estimated) after smooth amplitude path search')
+ax12.set_xlim(0,(h-H)/float(Fs))
+ax12.set_ylim(0,3.5)
+
 ax9.set_xlabel('Time (seconds)')
 ax9.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax9.set_title('Source 1 after %d most gainful swaps' % (int(J_lp),))
+ax9.set_title('Source 1 (true)')
 ax9.set_xlim(0,(h-H)/float(Fs))
 ax9.set_ylim(0,3.5)
 
 ax10.set_xlabel('Time (seconds)')
 ax10.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax10.set_title('Source 2 after %d most gainful swaps' % (int(J_lp,)))
+ax10.set_title('Source 2 (true)')
 ax10.set_xlim(0,(h-H)/float(Fs))
 ax10.set_ylim(0,3.5)
 
@@ -509,12 +533,12 @@ ax3.legend(lgd_ax3,('Source 1','Source 2','Spurious'))
 ax4.legend(lgd_ax4,('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
                     '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
                     '$\\pm \\sigma_{1}^{0}$'))
-ax5.legend(lgd_ax5,('Estimated','True'))
-ax6.legend(lgd_ax6,('Estimated','True'))
-ax7.legend(lgd_ax7,('Estimated','True'))
-ax8.legend(lgd_ax8,('Estimated','True'))
-ax9.legend(lgd_ax9,('Estimated','True'))
-ax10.legend(lgd_ax10,('Estimated','True'))
+#ax5.legend(lgd_ax5,('Estimated','True'))
+#ax6.legend(lgd_ax6,('Estimated','True'))
+#ax7.legend(lgd_ax7,('Estimated','True'))
+#ax8.legend(lgd_ax8,('Estimated','True'))
+#ax9.legend(lgd_ax9,('True'))
+#ax10.legend(lgd_ax10,('True'))
 
 fig10.savefig(outfilepath+'source_2_some_swapped.eps')
 fig9.savefig(outfilepath+'source_1_some_swapped.eps')

@@ -5,9 +5,17 @@
 % frequency slope vector fields.
 % Here spurious data are added to see how they distrupt the analysis.
 % No plotting, save data for plotting with matplotlib.
+% Specify parameter noise variance as argument to script
 clear;
+argv_=argv();
+if length(argv_) != 1
+    error('Specify desired variance')
+else
+    no=str2num(argv_{1});
+end
+    
 datoutpath=[getenv('HOME'),'/Documents/development/masters_thesis/reports/plots/'];
-datoutpath=[datoutpath,'hsrp_test_7.dat'];
+datoutpath=[datoutpath,'hsrp_test_7_',argv_{1},'.dat'];
 datoutpath
 % Colours for plotting different categories
 clrs={"black","blue","cyan","green","magenta","red","yellow"};
@@ -20,22 +28,22 @@ Pxm=cell(N_pxm);
     'T',0.5,
     'H',256,
     'f0',440*2^((60-69)/12),
-    'w_no',0.001,
+    'w_no',no,
     'T_60',0.5,
-    'mu_no',0.001,
+    'mu_no',no,
     'f_fm',3,
-    'psi_no',0.001));
+    'psi_no',no));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
     'H',256,
     'f0',440*2^((61-69)/12),
-    'w_no',0.001,
+    'w_no',no,
     'T_60',0.75,
-    'mu_no',0.001,
+    'mu_no',no,
     'phi_fm',.8,
     'f_fm',2,
-    'psi_no',0.001));
+    'psi_no',no));
 % percentage of spurious peaks added in relation to number of real peaks.
 spur_no=0.5;
 % range of fake w parameters
@@ -54,6 +62,7 @@ for n=1:length(Pxm{1})
     datout{n}=struct();
     X=[]; % storage for random variables
     X_plt=[]; % Storage for plotting information
+    lA_plt=[]; % Storage for log amplitude
     m=(n-1)*opt.H;
     for n_pxm=1:N_pxm
         sp=Pxm{n_pxm}{n};
@@ -62,17 +71,23 @@ for n=1:length(Pxm{1})
         X=[X;[(sp.psi_r./sp.w_r)(:),sp.mu_r(:)]];
         % Vector of values to be plotted.
         X_plt=[X_plt;[sp.w_r,sp.psi_r]];
+        lA_plt=[lA_plt;[log(abs(sp.X_r_))]];
     end
     datout{n}.X_orig=X;
     datout{n}.X_plt_orig=X_plt;
+    datout{n}.lA_plt_orig=lA_plt;
     N_fake=round(size(X,1)*spur_no);
     w_fake=unifrnd(w_no_rng(1),w_no_rng(2),N_fake,1);
     psi_fake=unifrnd(psi_no_rng(1),psi_no_rng(2),N_fake,1);
     mu_fake=unifrnd(mu_no_rng(1),mu_no_rng(2),N_fake,1);
+    % Amplitude is not considered in classification so just put some junk
+    lA_plt_fake=unifrnd(-80,0,N_fake,1);
     X=[X;[psi_fake./w_fake,mu_fake]];
     X_plt=[X_plt;[w_fake,psi_fake]];
+    lA_plt=[lA_plt;lA_plt_fake];
     datout{n}.X_fake=[psi_fake./w_fake,mu_fake];
     datout{n}.X_plt_fake=[w_fake,psi_fake];
+    datout{n}.lA_plt_fake=lA_plt_fake;
     % Frequency modulation / frequency
 %    h=scatter(f1,m*ones(size(X,1),1),X(:,1),[],'k');
 %    set(h,'linewidth',1);
@@ -83,8 +98,10 @@ for n=1:length(Pxm{1})
     perm_idx=randperm(size(X,1))(:);
     X=X(perm_idx,:);
     X_plt=X_plt(perm_idx,:);
+    lA_plt=lA_plt(perm_idx,:);
     datout{n}.X=X;
     datout{n}.X_plt=X_plt;
+    datout{n}.lA_plt=lA_plt;
     % First PC of these as realizations of 2-dimensional random variable
     [A_pca{n},l_pca]=pca_ne(X,'corr');
     datout{n}.A_pca=A_pca{n};

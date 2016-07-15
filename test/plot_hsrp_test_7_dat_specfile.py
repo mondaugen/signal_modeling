@@ -19,18 +19,16 @@ show_plots=False
 #show_plots=True
 infilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 
-if (len(sys.argv) == 3):
-    infilepath+='hsrp_test_7_%d.dat'
-    outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-    fname_idx0=int(sys.argv[1])
-    fname_idx1=int(sys.argv[2])
-    outfilepath+='hsrp_test_7_plot_%d-%d_' % (fname_idx0,fname_idx1)
-else:
-    infilepath+='hsrp_test_7.dat'
-    outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-    outfilepath+='hsrp_test_7_plot_'
-    fname_idx0=0
-    fname_idx1=0
+if (len(sys.argv) != 2):
+    raise Exception('Specify file.')
+if not sys.argv[1].endswith('.dat'):
+    raise Exception('File must end with .dat')
+
+infilepath+=sys.argv[1]
+outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+outfilepath+=sys.argv[1][:sys.argv[1].rfind('.dat')]+'_plot_'
+fname_idx0=0
+fname_idx1=0
 
 
 # Original data
@@ -321,7 +319,7 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
     # s.t
     # 1^T*x = J
     # 0 < x < 1
-    J_lp=3.
+    J_lp=4.
     uc_ary=np.array(uc)
     c_lp=cvxopt.matrix(uc_ary[:,1]-uc_ary[:,0])
     A_lp=cvxopt.matrix(np.array([np.ones(len(c_lp))]))

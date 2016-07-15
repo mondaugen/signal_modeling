@@ -5,9 +5,16 @@
 % frequency slope vector fields.
 % Here spurious data are added to see how they distrupt the analysis.
 % No plotting, save data for plotting with matplotlib.
+% Accepts argument to append index to plot data file name
 clear;
+argv_=argv();
+if length(argv_) != 1
+    fnameidx=0;
+else
+    fnameidx=argv_{1};
+end
 datoutpath=[getenv('HOME'),'/Documents/development/masters_thesis/reports/plots/'];
-datoutpath=[datoutpath,'hsrp_test_7.dat'];
+datoutpath=[datoutpath,'hsrp_test_7_',fnameidx,'.dat'];
 datoutpath
 % Colours for plotting different categories
 clrs={"black","blue","cyan","green","magenta","red","yellow"};
@@ -20,22 +27,22 @@ Pxm=cell(N_pxm);
     'T',0.5,
     'H',256,
     'f0',440*2^((60-69)/12),
-    'w_no',0.001,
+    'w_no',0.01,
     'T_60',0.5,
-    'mu_no',0.001,
+    'mu_no',0.01,
     'f_fm',3,
-    'psi_no',0.001));
+    'psi_no',0.01));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
     'H',256,
     'f0',440*2^((61-69)/12),
-    'w_no',0.001,
+    'w_no',0.01,
     'T_60',0.75,
-    'mu_no',0.001,
+    'mu_no',0.01,
     'phi_fm',.8,
     'f_fm',2,
-    'psi_no',0.001));
+    'psi_no',0.01));
 % percentage of spurious peaks added in relation to number of real peaks.
 spur_no=0.5;
 % range of fake w parameters
