@@ -15,6 +15,8 @@ plt.rc('font',family='serif')
 show_plots=True
 infilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 infilepath+='hsrp_test_7.dat'
+outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+outfilepath+='hsrp_test_7_plot_'
 
 # Original data
 fig1=plt.figure(1)
@@ -81,11 +83,11 @@ for i in xrange(len(datin)):
     lgd[1]=ax1.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_s2)[0]
     h+=H
 ax1.set_xlabel('Time (seconds)')
-# Why undefined sequence?
 ax1.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax1.set_title('Original data-points')
 ax1.set_xlim(0,(h-H)/float(Fs))
 ax1.legend(lgd,('Source 1','Source 2'))
+fig1.savefig(outfilepath+'orig_data.eps')
 
 h=0
 for i in xrange(len(datin)):
@@ -102,6 +104,7 @@ ax2.set_ylim(0,3.5)
 ax2.set_xlabel('Time (seconds)')
 ax2.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax2.set_title('Original and spurious data-points')
+fig2.savefig(outfilepath+'orig_spur_data.eps')
 
 h=0
 lgd=[[],[],[]]
@@ -133,12 +136,15 @@ ax3.set_title('Classified data-points')
 ax3.legend(lgd,('Source 1','Source 2','Spurious'))
 ax3.set_xlim(0,(h-H)/float(Fs))
 ax3.set_ylim(0,3.5)
+fig3.savefig(outfilepath+'class_data.eps')
 
 h=0
 lgd=[[],[],[]]
 for i in xrange(len(datin)):
     A_pca=datin[i]['A_pca'][0][0]
     clr_e=datin[i]['clr_'][0][0]
+    m0=datin[i]['m0'][0][0]
+    s0=datin[i]['s0'][0][0]
     a0=A_pca[:,0]
     N_a0=len(a0)
     h_e=h+H*np.c_[np.ones(N_a0)]
@@ -174,6 +180,7 @@ ax4.set_title('Principal components and their classification')
 ax4.legend(lgd,('Source 1','Source 2','Spurious'))
 ax4.set_xlim(0.2,0.3)
 ax4.set_ylim(-0.0012,0.0012)
+fig4.savefig(outfilepath+'class_pcs.eps')
 
 h=0
 lgd=[[],[]]
@@ -201,10 +208,11 @@ for i in xrange(len(datin)):
     h+=H
 ax5.set_xlabel('Time (seconds)')
 ax5.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax5.set_title('Source 1 (no swap)')
+ax5.set_title('Source 1 without swaps')
 ax5.legend(lgd,('Estimated','True'))
 ax5.set_xlim(0,(h-H)/float(Fs))
 ax5.set_ylim(0,3.5)
+fig5.savefig(outfilepath+'source_1.eps')
 
 h=0
 lgd=[[],[]]
@@ -232,10 +240,11 @@ for i in xrange(len(datin)):
     h+=H
 ax6.set_xlabel('Time (seconds)')
 ax6.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax6.set_title('Source 2 (no swap)')
+ax6.set_title('Source 2 without swaps')
 ax6.legend(lgd,('Estimated','True'))
 ax6.set_xlim(0,(h-H)/float(Fs))
 ax6.set_ylim(0,3.5)
+fig6.savefig(outfilepath+'source_2.eps')
 
 # Arrays of start and end frequencies for each frame, each column corresponds to
 # a priori source
@@ -607,6 +616,7 @@ ax7.legend(lgd,('Estimated','True'))
 #ax7.legend(lgd,('Estimated',))
 ax7.set_xlim(0,(h-H)/float(Fs))
 ax7.set_ylim(0,3.5)
+fig7.savefig(outfilepath+'source_1_all_swapped.eps')
 
 h=0
 lgd=[[],[]]
@@ -643,6 +653,7 @@ ax8.legend(lgd,('Estimated','True'))
 #ax8.legend(lgd,('Estimated',))
 ax8.set_xlim(0,(h-H)/float(Fs))
 ax8.set_ylim(0,3.5)
+fig8.savefig(outfilepath+'source_2_all_swapped.eps')
 
 h=0
 lgd=[[],[]]
@@ -679,6 +690,7 @@ ax9.legend(lgd,('Estimated','True'))
 #ax9.legend(lgd,('Estimated',))
 ax9.set_xlim(0,(h-H)/float(Fs))
 ax9.set_ylim(0,3.5)
+fig9.savefig(outfilepath+'source_1_some_swapped.eps')
 
 h=0
 lgd=[[],[]]
@@ -712,9 +724,9 @@ ax10.set_xlabel('Time (seconds)')
 ax10.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax10.set_title('Source 2 after %d most gainful swaps' % (int(J_lp,)))
 ax10.legend(lgd,('Estimated','True'))
-#ax10.legend(lgd,('Estimated',))
 ax10.set_xlim(0,(h-H)/float(Fs))
 ax10.set_ylim(0,3.5)
+fig10.savefig(outfilepath+'source_2_some_swapped.eps')
 
 if (show_plots):
     plt.show()

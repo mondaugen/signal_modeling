@@ -94,6 +94,7 @@ for n=1:length(Pxm{1})
     [m0,s0(1,1,:),b_avg,P_modes]=hist_sect(Y,N_pxm,N_b);
     datout{n}.m0=m0;
     datout{n}.b_avg=b_avg;
+    datout{n}.s0=(s0/3).^2;
     % First guess for weights
     w0=ones(N_pxm,1)/N_pxm;
     [C_,P_,mu_,S_,W_]=gmm(Y,m0,(s0/3).^2,w0,B_gmm);
