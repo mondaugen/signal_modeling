@@ -16,6 +16,7 @@ function [c,d,b_avg,P_modes]=hist_sect(A,P,B=10);
 % b : The boundaries.
 % P_modes : Also returns the coordinates of local maxima (the modes).
 % extreme bin boundaries
+%keyboard()
 bb_s=min(A);
 bb_e=max(A);
 % bin boundaries

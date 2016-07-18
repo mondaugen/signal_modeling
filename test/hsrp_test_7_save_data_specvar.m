@@ -6,12 +6,17 @@
 % Here spurious data are added to see how they distrupt the analysis.
 % No plotting, save data for plotting with matplotlib.
 % Specify parameter noise variance as argument to script
-clear;
-argv_=argv();
-if length(argv_) != 1
+clear -x _int_args;
+if (exist('_int_args'))
+    argv_=_int_args;
+else
+    argv_=argv();
+end
+if length(argv_) != 2
     error('Specify desired variance')
 else
-    no=str2num(argv_{1});
+    no_f=str2num(argv_{1});
+    no_a=str2num(argv_{2});
 end
     
 datoutpath=[getenv('HOME'),'/Documents/development/masters_thesis/reports/plots/'];
@@ -28,24 +33,26 @@ Pxm=cell(N_pxm);
     'T',0.5,
     'H',256,
     'f0',440*2^((60-69)/12),
-    'w_no',no,
+    'w_no',no_f,
     'T_60',0.5,
-    'mu_no',no,
+    'mu_no',no_a,
+    'A_no',no_a,
     'f_fm',3,
-    'psi_no',no));
+    'psi_no',no_f));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
     'H',256,
     'f0',440*2^((61-69)/12),
-    'w_no',no,
+    'w_no',no_f,
     'T_60',0.75,
-    'mu_no',no,
+    'mu_no',no_a,
+    'A_no',no_a,
     'phi_fm',.8,
     'f_fm',2,
-    'psi_no',no));
+    'psi_no',no_f));
 % percentage of spurious peaks added in relation to number of real peaks.
-spur_no=0.5;
+spur_no=0.25;
 % range of fake w parameters
 w_no_rng=[0 pi];
 % range of fake psi parameters
@@ -53,7 +60,7 @@ psi_no_rng=[-1e-4 1e-4];
 % range of fake mu parameters
 mu_no_rng=[-1e-3 1e-3];
 % Number of histogram bins
-N_b=40;
+N_b=20;
 % Histrogram bin count threshold
 H_th=7;
 A_pca=cell();

@@ -9,6 +9,7 @@ import cvxopt
 from cvxopt import solvers
 import sigmod as sm
 import sys
+import matplotlib.ticker as ticker
 
 
 plt.rc('text',usetex=True)
@@ -66,12 +67,27 @@ ax11=fig11.gca()
 # 2nd estimated source only, J best path connection
 fig12=plt.figure(12)
 ax12=fig12.gca()
-# 1st estimated source only, J best path connection
+# 1st estimated source only, spectrogram
 fig13=plt.figure(13)
 ax13=fig13.gca()
-# 2nd estimated source only, J best path connection
+# 2nd estimated source only, spectrogram
 fig14=plt.figure(14)
 ax14=fig14.gca()
+# 1st estimated source only, real part
+fig15=plt.figure(15)
+ax15=fig15.gca()
+# 2nd estimated source only, real part
+fig16=plt.figure(16)
+ax16=fig16.gca()
+# 1st estimated source only, amplitude function
+fig17=plt.figure(17)
+ax17=fig17.gca()
+# 2nd estimated source only, amplitude function
+fig18=plt.figure(18)
+ax18=fig18.gca()
+# 1st estimated source only, mu values
+fig19=plt.figure(19)
+ax19=fig19.gca()
 
 # Hop size
 H=256
@@ -131,7 +147,11 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
     # Theoretical signal
     x_s1_th=np.zeros((len(datin)*H,),dtype='complex_')
     # Theoretical signal
-    x_s2_th=np.zeros((len(datin)*H),dtype='complex_')
+    x_s2_th=np.zeros((len(datin)*H,),dtype='complex_')
+    # Theoretical amplitude functions
+    a_s1_th=np.zeros((K,len(datin)*H),dtype='float64')
+    # Theoretical amplitude functions
+    a_s2_th=np.zeros((K,len(datin)*H),dtype='float64')
 
     h=0
     for i in xrange(len(datin)):
@@ -372,11 +392,13 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         mu_orig=datin[i]['X_orig'][0][0][:K,1]
         la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
         x_s1_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
+        a_s1_th[:,h:h+H]=np.exp(la_)
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
 #        lgd_ax7[1]=ax7.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
         lgd_ax9[0]=ax9.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
+        ax19.scatter(h*np.ones(K),mu_orig,c='b')
         h+=H
 
     # last phases
@@ -407,11 +429,13 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         mu_orig=datin[i]['X_orig'][0][0][K:,1]
         la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
         x_s2_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
+        a_s2_th[:,h:h+H]=np.exp(la_)
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
 #        lgd_ax8[1]=ax8.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
         lgd_ax10[0]=ax10.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
+        ax19.scatter(h*np.ones(K),mu_orig,c='r')
         h+=H
 
     # Smooth amplitude path
@@ -453,36 +477,71 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
             lgd_ax12[lgd_ax8_idx]=ax12.plot(r[0:2],r[2:4],ls_)[0]
         h+=H
 
-ax13.specgram(x_s1_th,Fs=2.*np.pi)
-ax14.specgram(x_s2_th,Fs=2.*np.pi)
-        
+# Reformat time ticks on spectrogram
+sgram_tscale=(2.*np.pi)/float(Fs)
+def _time_scale_func(x,pos):
+    return '{:1.1f}'.format(x*sgram_tscale)
+ticks_spec_time=ticker.FuncFormatter(_time_scale_func)
+
+ax13.specgram(x_s1_th,Fs=2.*np.pi,cmap='Greys')
+ax13.set_xlim(0.,(h-H)/(2.*np.pi))
+ax13.set_ylim(0.,np.pi)
+ax13.set_xlabel('Time (seconds)')
+ax13.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax13.xaxis.set_major_formatter(ticks_spec_time)
+ax13.set_title('Spectrogram of source 1 (true)')
+
+ax14.specgram(x_s2_th,Fs=2.*np.pi,cmap='Greys')
+ax14.set_xlim(0.,(h-H)/(2.*np.pi))
+ax14.set_ylim(0.,np.pi)
+ax14.set_xlabel('Time (seconds)')
+ax14.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax14.xaxis.set_major_formatter(ticks_spec_time)
+ax14.set_title('Spectrogram of source 2 (true)')
+
+ax15.plot(np.arange(len(x_s1_th))/float(Fs),np.real(x_s1_th),c='k')
+ax15.set_xlabel('Time (seconds)')
+ax15.set_ylabel('Value (real part)')
+ax15.set_title('Source 1 (true)')
+ax15.set_xlim(0.,(h-H)/float(Fs))
+
+ax16.plot(np.arange(len(x_s2_th))/float(Fs),np.real(x_s2_th),c='k')
+ax16.set_xlabel('Time (seconds)')
+ax16.set_ylabel('Value (real part)')
+ax16.set_title('Source 2 (true)')
+ax16.set_xlim(0.,(h-H)/float(Fs))
+
+ax17.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
+        a_s1_th.T,ls='-',c='k')
+ax18.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
+        a_s2_th.T,ls='-',c='k')
 
 ax6.set_xlabel('Time (seconds)')
 ax6.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax6.set_title('Source 2 (estimated)')
 ax6.set_xlim(0,(h-H)/float(Fs))
-ax6.set_ylim(0,3.5)
+ax6.set_ylim(0,np.pi)
 
 ax5.set_xlabel('Time (seconds)')
 ax5.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax5.set_title('Source 1 (estimated)')
 ax5.set_xlim(0,(h-H)/float(Fs))
-ax5.set_ylim(0,3.5)
+ax5.set_ylim(0,np.pi)
 
 ax4.set_xlabel('Time (seconds)')
 ax4.set_ylabel('1st PC')
 ax4.set_title('Principal components and their classification')
 ax4.set_xlim(0.2,0.3)
-ax4.set_ylim(-0.00035,0.)
+ax4.set_ylim(-0.0007,-0.00035)
 
 ax3.set_xlabel('Time (seconds)')
 ax3.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax3.set_title('Classified data-points')
 ax3.set_xlim(0,(h-H)/float(Fs))
-ax3.set_ylim(0,3.5)
+ax3.set_ylim(0,np.pi)
 
 ax2.set_xlim(0,(h-H)/float(Fs))
-ax2.set_ylim(0,3.5)
+ax2.set_ylim(0,np.pi)
 ax2.set_xlabel('Time (seconds)')
 ax2.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax2.set_title('Original and spurious data-points')
@@ -496,49 +555,43 @@ ax7.set_xlabel('Time (seconds)')
 ax7.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax7.set_title('Source 1 (estimated) after smooth frequency path search')
 ax7.set_xlim(0,(h-H)/float(Fs))
-ax7.set_ylim(0,3.5)
+ax7.set_ylim(0,np.pi)
 
 ax8.set_xlabel('Time (seconds)')
 ax8.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax8.set_title('Source 2 (estimated) after smooth frequency path search')
 ax8.set_xlim(0,(h-H)/float(Fs))
-ax8.set_ylim(0,3.5)
+ax8.set_ylim(0,np.pi)
 
 ax11.set_xlabel('Time (seconds)')
 ax11.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax11.set_title('Source 1 (estimated) after smooth amplitude path search')
 ax11.set_xlim(0,(h-H)/float(Fs))
-ax11.set_ylim(0,3.5)
+ax11.set_ylim(0,np.pi)
 
 ax12.set_xlabel('Time (seconds)')
 ax12.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
 ax12.set_title('Source 2 (estimated) after smooth amplitude path search')
 ax12.set_xlim(0,(h-H)/float(Fs))
-ax12.set_ylim(0,3.5)
+ax12.set_ylim(0,np.pi)
 
 ax9.set_xlabel('Time (seconds)')
 ax9.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax9.set_title('Source 1 (true)')
+ax9.set_title('Source 1 partials (true)')
 ax9.set_xlim(0,(h-H)/float(Fs))
-ax9.set_ylim(0,3.5)
+ax9.set_ylim(0,np.pi)
 
 ax10.set_xlabel('Time (seconds)')
 ax10.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-ax10.set_title('Source 2 (true)')
+ax10.set_title('Source 2 partials (true)')
 ax10.set_xlim(0,(h-H)/float(Fs))
-ax10.set_ylim(0,3.5)
+ax10.set_ylim(0,np.pi)
 
 ax1.legend(lgd_ax1,('Source 1','Source 2'))
 ax3.legend(lgd_ax3,('Source 1','Source 2','Spurious'))
 ax4.legend(lgd_ax4,('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
                     '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
                     '$\\pm \\sigma_{1}^{0}$'))
-#ax5.legend(lgd_ax5,('Estimated','True'))
-#ax6.legend(lgd_ax6,('Estimated','True'))
-#ax7.legend(lgd_ax7,('Estimated','True'))
-#ax8.legend(lgd_ax8,('Estimated','True'))
-#ax9.legend(lgd_ax9,('True'))
-#ax10.legend(lgd_ax10,('True'))
 
 fig10.savefig(outfilepath+'source_2_some_swapped.eps')
 fig9.savefig(outfilepath+'source_1_some_swapped.eps')
@@ -550,6 +603,10 @@ fig3.savefig(outfilepath+'class_data.eps')
 fig4.savefig(outfilepath+'class_pcs.eps')
 fig5.savefig(outfilepath+'source_1.eps')
 fig6.savefig(outfilepath+'source_2.eps')
+fig13.savefig(outfilepath+'source_1_spec.eps')
+fig14.savefig(outfilepath+'source_2_spec.eps')
+fig15.savefig(outfilepath+'source_1_tdrp.eps')
+fig16.savefig(outfilepath+'source_2_tdrp.eps')
 
 if (show_plots):
     plt.show()
