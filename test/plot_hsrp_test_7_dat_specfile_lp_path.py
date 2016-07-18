@@ -82,12 +82,15 @@ ax16=fig16.gca()
 # 1st estimated source only, amplitude function
 fig17=plt.figure(17)
 ax17=fig17.gca()
-# 2nd estimated source only, amplitude function
-fig18=plt.figure(18)
-ax18=fig18.gca()
-# 1st estimated source only, mu values
+## 2nd estimated source only, amplitude function
+#fig18=plt.figure(18)
+#ax18=fig18.gca()
+# The true amplitude modulation parameter
 fig19=plt.figure(19)
 ax19=fig19.gca()
+# The true frequency modulation / frequency parameter
+fig20=plt.figure(20)
+ax20=fig20.gca()
 
 # Hop size
 H=256
@@ -136,6 +139,14 @@ lgd_ax11=[[],[]]
 lgd_ax12=[[],[]]
 lgd_ax13=[[],[]]
 lgd_ax14=[[],[]]
+ax17_lgd=[None,None]
+ax19_lgd=[None,None]
+ax20_lgd=[None,None]
+
+max_fm=float('-inf')
+min_fm=float('inf')
+max_am=float('-inf')
+min_am=float('inf')
 
 
 for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
@@ -390,15 +401,28 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         phi_s1_th+=wn0_*H+dwn_*H**2.
         lA_plt_orig=datin[i]['lA_plt_orig'][0][0][:K]
         mu_orig=datin[i]['X_orig'][0][0][:K,1]
+        psi_w_orig=datin[i]['X_orig'][0][0][:K,0]
         la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
         x_s1_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
         a_s1_th[:,h:h+H]=np.exp(la_)
+        a_s1_th_plt=np.exp(lA_plt_orig+np.multiply.outer(mu_orig,np.arange(-H/2,H/2)))
+        ax17_lgd[0]=ax17.plot(np.multiply.outer(np.arange(h,h+H)/float(Fs),np.ones(K)),
+                a_s1_th_plt.T,c='k')[0]
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
 #        lgd_ax7[1]=ax7.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_bg)[0]
         lgd_ax9[0]=ax9.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
-        ax19.scatter(h*np.ones(K),mu_orig,c='b')
+        ax19_lgd[0]=ax19.scatter(h/float(Fs)*np.ones(K),mu_orig,c='k',lw=0)
+        ax20_lgd[0]=ax20.scatter(h/float(Fs)*np.ones(K),psi_w_orig,c='k',lw=0)
+        if mu_orig.max() > max_am:
+            max_am=mu_orig.max()
+        if mu_orig.min() < min_am:
+            min_am=mu_orig.min()
+        if psi_w_orig.max() > max_fm:
+            max_fm=psi_w_orig.max()
+        if psi_w_orig.min() < min_fm:
+            min_fm=psi_w_orig.min()
         h+=H
 
     # last phases
@@ -427,15 +451,20 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         phi_s2_th+=wn0_*H+dwn_*H**2.
         lA_plt_orig=datin[i]['lA_plt_orig'][0][0][K:]
         mu_orig=datin[i]['X_orig'][0][0][K:,1]
+        psi_w_orig=datin[i]['X_orig'][0][0][K:,0]
         la_=lA_plt_orig+np.multiply.outer(mu_orig,n_)
         x_s2_th[h:h+H]+=np.exp(1j*ph_+la_).sum(0)
         a_s2_th[:,h:h+H]=np.exp(la_)
+        a_s2_th_plt=np.exp(lA_plt_orig+np.multiply.outer(mu_orig,np.arange(-H/2,H/2)))
+        ax17_lgd[1]=ax17.plot(np.multiply.outer(np.arange(h,h+H)/float(Fs),np.ones(K)),
+                a_s2_th_plt.T,c='grey')[0]
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
 #        lgd_ax8[1]=ax8.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_bg)[0]
         lgd_ax10[0]=ax10.plot(h_o.T,np.c_[w0_o,w1_o].T,'k-')[0]
-        ax19.scatter(h*np.ones(K),mu_orig,c='r')
+        ax19_lgd[1]=ax19.scatter(h/float(Fs)*np.ones(K),mu_orig,c='grey',lw=0)
+        ax20_lgd[1]=ax20.scatter(h/float(Fs)*np.ones(K),psi_w_orig,c='grey',lw=0)
         h+=H
 
     # Smooth amplitude path
@@ -511,10 +540,32 @@ ax16.set_ylabel('Value (real part)')
 ax16.set_title('Source 2 (true)')
 ax16.set_xlim(0.,(h-H)/float(Fs))
 
-ax17.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
-        a_s1_th.T,ls='-',c='k')
-ax18.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
-        a_s2_th.T,ls='-',c='k')
+#ax17.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
+#        a_s1_th.T,ls='-',c='k')
+ax17.set_title('Amplitude function for each source (true)')
+ax17.set_xlabel('Time (seconds)')
+ax17.set_ylabel('Amplitude')
+ax17.legend(ax17_lgd,('Source 1','Source 2'))
+ax17.set_xlim(0,(h-H)/float(Fs))
+#ax18.plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
+#        a_s2_th.T,ls='-',c='k')
+
+
+ax19.set_xlabel('Time (seconds)')
+ax19.set_ylabel('$\\mu_{k,p}$')
+ax19.set_title('Amplitude modulation (true)')
+mima_am_de=(max_am-min_am)*0.1
+ax19.set_ylim(min_am-mima_am_de,max_am+mima_am_de)
+ax19.set_xlim(0.,(h-H)/float(Fs))
+ax19.legend(ax19_lgd,('Source 1','Source 2'))
+
+ax20.set_xlabel('Time (seconds)')
+ax20.set_ylabel('$\\psi_{k,p}$')
+ax20.set_title('Frequency modulation (true)')
+mima_fm_de=(max_fm-min_fm)*0.1
+ax20.set_ylim(min_fm-mima_fm_de,max_fm+mima_fm_de)
+ax20.set_xlim(0.,(h-H)/float(Fs))
+ax20.legend(ax20_lgd,('Source 1','Source 2'))
 
 ax6.set_xlabel('Time (seconds)')
 ax6.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
@@ -607,6 +658,9 @@ fig13.savefig(outfilepath+'source_1_spec.eps')
 fig14.savefig(outfilepath+'source_2_spec.eps')
 fig15.savefig(outfilepath+'source_1_tdrp.eps')
 fig16.savefig(outfilepath+'source_2_tdrp.eps')
+fig17.savefig(outfilepath+'af.eps')
+fig19.savefig(outfilepath+'mu.eps')
+fig20.savefig(outfilepath+'psi.eps')
 
 if (show_plots):
     plt.show()

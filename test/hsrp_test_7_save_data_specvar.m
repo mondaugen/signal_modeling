@@ -20,7 +20,7 @@ else
 end
     
 datoutpath=[getenv('HOME'),'/Documents/development/masters_thesis/reports/plots/'];
-datoutpath=[datoutpath,'hsrp_test_7_',argv_{1},'.dat'];
+datoutpath=[datoutpath,'hsrp_test_7_',argv_{1},'_',argv_{2},'.dat'];
 datoutpath
 % Colours for plotting different categories
 clrs={"black","blue","cyan","green","magenta","red","yellow"};
