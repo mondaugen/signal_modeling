@@ -17,7 +17,8 @@ plt.rc('font',family='serif')
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 #show_plots=False
-show_plots=True
+show_plots=False
+save_figs=True
 infilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 
 if (len(sys.argv) != 2):
@@ -99,17 +100,14 @@ K=20
 
 # Line styles
 # source 1
-if (len(sys.argv) == 3):
-    ls_s1='k-'
-else:
-    ls_s1='k:'
+ls_s1='-'
 # source 2
-if (len(sys.argv) == 3):
-    ls_s2='k-'
-else:
-    ls_s2='k--'
+ls_s2='-'
+lc_s1='k'
+lc_s2='grey'
 # background
-ls_bg='lightgrey'
+ls_bg='-'
+lc_bg='lightgrey'
 # Point styles
 ps_s1_s='o'
 ps_s1_c='k'
@@ -172,8 +170,8 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_o=len(w0_o)
         h_o=h+H*np.c_[-0.5*np.ones(N_w0_o),0.5*np.ones(N_w0_o)]
         h_o/=Fs
-        lgd_ax1[0]=ax1.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_s1)[0]
-        lgd_ax1[1]=ax1.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_s2)[0]
+        lgd_ax1[0]=ax1.plot(h_o.T[:,:K],np.c_[w0_o[:K],w1_o[:K]].T,ls_s1,c=lc_s1)[0]
+        lgd_ax1[1]=ax1.plot(h_o.T[:,K:],np.c_[w0_o[K:],w1_o[K:]].T,ls_s2,c=lc_s2)[0]
         h+=H
 
     
@@ -201,15 +199,18 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
             # Source 1 'b'
             if (r[4]=='b'):
                 ls_=ls_s1
+                lc_=lc_s1
                 lgd_ax3_idx=0
             # Source 2 'c'
             elif (r[4]=='c'):
                 ls_=ls_s2
+                lc_=lc_s2
                 lgd_ax3_idx=1
             else:
                 ls_=ls_bg
+                lc_=lc_bg
                 lgd_ax3_idx=2
-            lgd_ax3[lgd_ax3_idx]=ax3.plot(r[0:2],r[2:4],ls_)[0]
+            lgd_ax3[lgd_ax3_idx]=ax3.plot(r[0:2],r[2:4],ls_,c=lc_)[0]
         h+=H
     
     h=0
@@ -582,8 +583,8 @@ ax5.set_ylim(0,np.pi)
 ax4.set_xlabel('Time (seconds)')
 ax4.set_ylabel('1st PC')
 ax4.set_title('Principal components and their classification')
-ax4.set_xlim(0.2,0.3)
-ax4.set_ylim(-0.0007,-0.00035)
+ax4.set_xlim(0.1,0.5)
+ax4.set_ylim(-0.0008,0.0008)
 
 ax3.set_xlabel('Time (seconds)')
 ax3.set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
@@ -644,23 +645,26 @@ ax4.legend(lgd_ax4,('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
                     '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
                     '$\\pm \\sigma_{1}^{0}$'))
 
-fig10.savefig(outfilepath+'source_2_some_swapped.eps')
-fig9.savefig(outfilepath+'source_1_some_swapped.eps')
-fig8.savefig(outfilepath+'source_2_all_swapped.eps')
-fig7.savefig(outfilepath+'source_1_all_swapped.eps')
-fig1.savefig(outfilepath+'orig_data.eps')
-fig2.savefig(outfilepath+'orig_spur_data.eps')
-fig3.savefig(outfilepath+'class_data.eps')
-fig4.savefig(outfilepath+'class_pcs.eps')
-fig5.savefig(outfilepath+'source_1.eps')
-fig6.savefig(outfilepath+'source_2.eps')
-fig13.savefig(outfilepath+'source_1_spec.eps')
-fig14.savefig(outfilepath+'source_2_spec.eps')
-fig15.savefig(outfilepath+'source_1_tdrp.eps')
-fig16.savefig(outfilepath+'source_2_tdrp.eps')
-fig17.savefig(outfilepath+'af.eps')
-fig19.savefig(outfilepath+'mu.eps')
-fig20.savefig(outfilepath+'psi.eps')
+if (save_figs):
+    fig1.savefig(outfilepath+ 'orig_data.eps')
+    fig2.savefig(outfilepath+ 'orig_spur_data.eps')
+    fig3.savefig(outfilepath+ 'class_data.eps')
+    fig4.savefig(outfilepath+ 'class_pcs.eps')
+    fig5.savefig(outfilepath+ 'source_1_est.eps')
+    fig6.savefig(outfilepath+ 'source_2_est.eps')
+    fig7.savefig(outfilepath+ 'source_1_smooth_freq.eps')
+    fig8.savefig(outfilepath+ 'source_2_smooth_freq.eps')
+    fig9.savefig(outfilepath+ 'source_1_true.eps')
+    fig10.savefig(outfilepath+'source_2_true.eps')
+    fig11.savefig(outfilepath+'source_1_smooth_amp.eps')
+    fig12.savefig(outfilepath+'source_2_smooth_amp.eps')
+    fig13.savefig(outfilepath+'source_1_spec.eps')
+    fig14.savefig(outfilepath+'source_2_spec.eps')
+    fig15.savefig(outfilepath+'source_1_tdrp.eps')
+    fig16.savefig(outfilepath+'source_2_tdrp.eps')
+    fig17.savefig(outfilepath+'af.eps')
+    fig19.savefig(outfilepath+'mu.eps')
+    fig20.savefig(outfilepath+'psi.eps')
 
 if (show_plots):
     plt.show()

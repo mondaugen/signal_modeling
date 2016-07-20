@@ -70,7 +70,7 @@ opt.k_B=k.*sqrt(1+opt.B*k.^2);
 a_k_60=log(10^(-3))/opt.A_k_60;
 % use original harmonic numbers, divide by 2 because
 % we store only one half of cosine in spectrum (not its conjugate phasor)
-opt.A_k=exp(a_k_60*k)*0.5;
+opt.A_k=exp(a_k_60*k);
 % amplitude coefficient
 opt.a_60=log(10^(-3))/opt.T_60;
 % psi stddev calculation
