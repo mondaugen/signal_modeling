@@ -10,6 +10,7 @@ from cvxopt import solvers
 import sigmod as sm
 import sys
 import matplotlib.ticker as ticker
+import matplotlib.lines as mlines
 
 
 plt.rc('text',usetex=True)
@@ -92,6 +93,9 @@ ax19=fig19.gca()
 # The true frequency modulation / frequency parameter
 fig20=plt.figure(20)
 ax20=fig20.gca()
+# Frequency smoothed sources
+# Amplitude smoothed sources
+fig21, (ax21,ax22) =plt.subplots(2,1,sharex=True,num=21)
 
 # Hop size
 H=256
@@ -140,6 +144,8 @@ lgd_ax14=[[],[]]
 ax17_lgd=[None,None]
 ax19_lgd=[None,None]
 ax20_lgd=[None,None]
+ax21_lgd=[None,None,None,None]
+ax22_lgd=[None,None]
 
 max_fm=float('-inf')
 min_fm=float('inf')
@@ -468,6 +474,36 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         ax20_lgd[1]=ax20.scatter(h/float(Fs)*np.ones(K),psi_w_orig,c='grey',lw=0)
         h+=H
 
+    # Smooth frequency path LP solution
+    t=0
+    path_marker_list=['o','s']
+    path_sf_pos=dict()
+    for f_lp in F_lp:
+        k=0
+        for f in f_lp:
+            path_sf_pos[f]=k
+            ax21.scatter(t,k,c='k',lw=0,marker=path_marker_list[k])
+            ax21_lgd[k]=mlines.Line2D([],[],color='white',lw=0,
+                    markerfacecolor='k',marker=path_marker_list[k])
+            k+=1
+        t+=1
+
+    path_sf_clrs=['k','grey']
+    for t in xrange(len(q_lp[0])-1):
+        for i in xrange(2):
+            k0=path_sf_pos[q_lp[i][t]]
+            k1=path_sf_pos[q_lp[i][t+1]]
+            ax21_lgd[i+2]=mlines.Line2D([],[],color=path_sf_clrs[i])
+            ax21.annotate('',
+                xy=(t,k0),
+                xytext=(t+1,k1),
+                arrowprops=dict(
+                    linewidth=1.,
+                    arrowstyle='-',
+                    shrinkA=3,
+                    shrinkB=3,
+                    color=path_sf_clrs[i])) 
+
     # Smooth amplitude path
     J_lp=2
     D_lp=ptpath.g_f_2lp(S_lp,F_lp,J_lp,
@@ -506,6 +542,32 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
             lgd_ax12_idx=0
             lgd_ax12[lgd_ax8_idx]=ax12.plot(r[0:2],r[2:4],ls_)[0]
         h+=H
+
+    # Smooth amplitude path LP solution
+    t=0
+    path_sa_pos=dict()
+    for f_lp in F_lp:
+        k=0
+        for f in f_lp:
+            path_sa_pos[f]=k
+            ax22.scatter(t,k,c='k',lw=0,marker=path_marker_list[k])
+            k+=1
+        t+=1
+
+    path_sa_clrs=['k','grey']
+    for t in xrange(len(q_lp[0])-1):
+        for i in xrange(2):
+            k0=path_sa_pos[q_lp[i][t]]
+            k1=path_sa_pos[q_lp[i][t+1]]
+            ax22.annotate('',
+                xy=(t,k0),
+                xytext=(t+1,k1),
+                arrowprops=dict(
+                    linewidth=1.,
+                    arrowstyle='-',
+                    shrinkA=3,
+                    shrinkB=3,
+                    color=path_sa_clrs[i])) 
 
 # Reformat time ticks on spectrogram
 sgram_tscale=(2.*np.pi)/float(Fs)
@@ -645,6 +707,20 @@ ax4.legend(lgd_ax4,('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
                     '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
                     '$\\pm \\sigma_{1}^{0}$'))
 
+ax21.get_yaxis().set_visible(False)
+ax22.get_yaxis().set_visible(False)
+ax21.set_xlim(-0.5,len(q_lp[0])-1+0.5)
+ax22.set_xlim(-0.5,len(q_lp[0])-1+0.5)
+ax21.set_title('Smoothed frequency paths')
+ax22.set_title('Smoothed amplitude paths')
+ax22.set_xlabel('Frame number $t$')
+#ax21.legend(ax21_lgd,
+#    ('Original Source 1',
+#        'Original Source 2',
+#        'Source 1',
+#        'Source 2'))
+#ax22.legend(ax22_lgd,('Source 1','Source 2'))
+
 if (save_figs):
     fig1.savefig(outfilepath+ 'orig_data.eps')
     fig2.savefig(outfilepath+ 'orig_spur_data.eps')
@@ -665,6 +741,7 @@ if (save_figs):
     fig17.savefig(outfilepath+'af.eps')
     fig19.savefig(outfilepath+'mu.eps')
     fig20.savefig(outfilepath+'psi.eps')
+    fig21.savefig(outfilepath+'smooth_freq_amp_sol.eps')
 
 if (show_plots):
     plt.show()
