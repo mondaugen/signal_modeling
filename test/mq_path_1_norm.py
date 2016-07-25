@@ -7,19 +7,16 @@ from cvxopt import solvers
 import ptpath_test
 import os
 
-# Give paths starting point hint
-
 show_plot=False
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-chirp_param_out_path=plotoutpath+'mq_lp_compare_chirp_hint_params.txt'
+chirp_param_out_path=plotoutpath+'mq_lp_compare_chirp_params_norm.txt'
 if len(sys.argv) < 2:
     D_r=20.
-    plotoutpath+='mq_lp_compare_chirp_hint'+str(int(np.round(D_r)))+'_dflt.eps'
+    plotoutpath+='mq_lp_compare_chirp_norm_'+str(int(np.round(D_r)))+'_dflt.eps'
 else:
     D_r=float(sys.argv[1])
-    plotoutpath+='mq_lp_compare_chirp_hint'+str(int(np.round(D_r)))+'.eps'
-
+    plotoutpath+='mq_lp_compare_chirp_norm_'+str(int(np.round(D_r)))+'.eps'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -40,12 +37,6 @@ K=3
 # Boundaries on frequencies to consider
 f_min=250.
 f_max=2250
-# start frequencies of chirp 1
-f_c0_t0=np.arange(1,K+1)*f0_0
-# start frequencies of chirp 2
-f_c1_t0=np.arange(1,K+1)*f1_0
-# start frequencies
-f_t0=np.r_[f_c0_t0,f_c1_t0]
 
 ## Power of signal (dB)
 #  Each sinusoid has amplitude 1 and there are K sinusoids per sound.
@@ -87,6 +78,12 @@ with open(chirp_param_out_path,'w') as fo:
         fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
                 (k_fo,a1_0,a1_1*k,a1_2*k*1.e6,f1_0*k,f1_1*k))
         k_fo+=1
+#for k in np.arange(1,K+1):
+#    phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
+#    x0_n+=np.exp(1j*phi_n)
+#for k in np.arange(1,K+1):
+#    phi_n=np.polyval([0.5*a1_2*k,a1_1*k,a1_0],n)
+#    x1_n+=np.exp(1j*phi_n)
 
 # Add noise
 x0_n+=np.random.standard_normal(N)*np.sqrt(P_n)
@@ -147,15 +144,6 @@ def _dp_filt(_a):
     return ((max(f0_,f1_) < f_max)
         and (min(f0_,f1_) > f_min))
 
-# Keep only data-points closest to true frequency
-a_t0=[]
-for f_t0_ in f_t0:
-    _fs=[np.imag(_a[1])/(2.*np.pi)*Fs for _a in a[0]]
-    _fs=np.array(_fs)
-    _i=((_fs-f_t0_)**2.).argmin()
-    a_t0.append(a[0][_i])
-a[0]=a_t0
-
 a_flt=[]
 for a_ in a:
     a_flt.append(filter(_dp_filt,a_))
@@ -172,14 +160,24 @@ for a_ in a_flt:
 
 # Find this many best paths
 J=6
+
+# This function called first to get total cost
+def _freq_predict_err(a,b,dt):
+    return abs((np.imag(a[1])+2.*np.imag(a[2])*dt)
+            -np.imag(b[1]))
+
+def _freq_smooth_cost(a,b):
+    return abs(np.imag(a[2])-np.imag(b[2]))
+
 # Function for determining distance between 2 nodes
+# This function called on second run
 def _node_cxn_cost(a,b,dt):
 #    return (((np.imag(a[1])+2.*np.imag(a[2])*0.5*H)
 #             -(np.imag(b[1])+2.*np.imag(b[2])*0.5*H))**2.
 #             + (2.*np.imag(a[2])
 #             -2.*np.imag(b[2]))**2.)
-    return ((np.imag(a[1])+2.*np.imag(a[2])*dt)
-            -np.imag(b[1]))**2.
+    return abs((np.imag(a[1])+2.*np.imag(a[2])*dt)
+            -np.imag(b[1]))#**2.
 # MQ method
 A_cxn=[]
 for k in xrange(len(a_flt)-1):
@@ -223,11 +221,29 @@ for k,A_cxn_ in zip(xrange(len(a_flt)-1),A_cxn):
     h+=H
 
 ## Compare with LP method
-# Cost function
-def _lp_cost_fun(a,b):
-    return _node_cxn_cost(a.value,b.value,(b.frame_num-a.frame_num)*H)+1.
+class CostFuns:
+    def __init__(self,weight):
+        self.ferr_tot=0.
+        self.fsmooth_tot=0.
+        self.weight=0.5
+    # Cost function
+    # called before to get cost totals
+    def lp_cost_fun_pre(self,a,b):
+        self.ferr_tot+=_freq_predict_err(a.value,b.value,(b.frame_num-a.frame_num)*H)
+        self.fsmooth_tot+=_freq_smooth_cost(a.value,b.value)
+        return 0.
+    # called to solve LP
+    def lp_cost_fun(self,a,b):
+        return (_freq_predict_err(a.value,
+                b.value,
+                (b.frame_num-a.frame_num)*H)*self.weight/self.ferr_tot+
+            _freq_smooth_cost(a.value,
+                b.value)*(1.-self.weight)/self.fsmooth_tot+1.)
+
 # Number of frames in LP
 L=6
+# Cost weight between error and smoothness
+lp_cost_weight=0.5
 end_node_indices=[]
 S_all=[]
 F_all=[]
@@ -260,8 +276,11 @@ for l in xrange(0,len(a_flt)-L,L-1):
             S[f].out_nodes=F[l_+1]
         for f in F[l_+1]:
             S[f].in_nodes=F[l_]
+    cf=CostFuns(lp_cost_weight)
+    # Build linear program (pre)
+    d=ptpath.g_f_2lp(S,F,J,cf.lp_cost_fun_pre,{'calc_mean':0,'min_mean_dev':0})
     # Build linear program
-    d=ptpath.g_f_2lp(S,F,J,_lp_cost_fun,{'calc_mean':0,'min_mean_dev':0})
+    d=ptpath.g_f_2lp(S,F,J,cf.lp_cost_fun,{'calc_mean':0,'min_mean_dev':0})
     # Solve LP
     sol=solvers.lp(d['c'],d['G'],d['h'],d['A'],d['b'])['x']
     # Extract paths
@@ -289,8 +308,6 @@ for S,F,paths in zip(S_all,F_all,paths_all):
         fs=np.array(fs)
         ax3.plot(ts,fs,c='w')
     l+=L-1
-
-# Plot vertical lines to show start and end points of LP path search
 
 for l in xrange(0,len(a_flt)-L,L-1):
     ax3.plot([l*H/float(Fs),l*H/float(Fs)],[f_min,f_max],c='w',ls=':')

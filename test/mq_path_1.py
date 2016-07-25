@@ -10,6 +10,7 @@ import os
 show_plot=False
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
+chirp_param_out_path=plotoutpath+'mq_lp_compare_chirp_params.txt'
 if len(sys.argv) < 2:
     D_r=20.
     plotoutpath+='mq_lp_compare_chirp_'+str(int(np.round(D_r)))+'_dflt.eps'
@@ -63,12 +64,26 @@ a1_0=0.
 # Phase function
 x0_n=np.zeros(N,dtype='complex_')
 x1_n=np.zeros(N,dtype='complex_')
-for k in np.arange(1,K+1):
-    phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
-    x0_n+=np.exp(1j*phi_n)
-for k in np.arange(1,K+1):
-    phi_n=np.polyval([0.5*a1_2*k,a1_1*k,a1_0],n)
-    x1_n+=np.exp(1j*phi_n)
+with open(chirp_param_out_path,'w') as fo:
+    k_fo=0
+    for k in np.arange(1,K+1):
+        phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
+        x0_n+=np.exp(1j*phi_n)
+        fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
+                (k_fo,a0_0,a0_1*k,a0_2*k*1.e6,f0_0*k,f0_1*k))
+        k_fo+=1
+    for k in np.arange(1,K+1):
+        phi_n=np.polyval([0.5*a1_2*k,a1_1*k,a1_0],n)
+        x1_n+=np.exp(1j*phi_n)
+        fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
+                (k_fo,a1_0,a1_1*k,a1_2*k*1.e6,f1_0*k,f1_1*k))
+        k_fo+=1
+#for k in np.arange(1,K+1):
+#    phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
+#    x0_n+=np.exp(1j*phi_n)
+#for k in np.arange(1,K+1):
+#    phi_n=np.polyval([0.5*a1_2*k,a1_1*k,a1_0],n)
+#    x1_n+=np.exp(1j*phi_n)
 
 # Add noise
 x0_n+=np.random.standard_normal(N)*np.sqrt(P_n)
@@ -151,8 +166,8 @@ def _node_cxn_cost(a,b,dt):
 #             -(np.imag(b[1])+2.*np.imag(b[2])*0.5*H))**2.
 #             + (2.*np.imag(a[2])
 #             -2.*np.imag(b[2]))**2.)
-    return ((np.imag(a[1])+2.*np.imag(a[2])*dt)
-            -np.imag(b[1]))**2.
+    return abs((np.imag(a[1])+2.*np.imag(a[2])*dt)
+            -np.imag(b[1]))#**2.
 # MQ method
 A_cxn=[]
 for k in xrange(len(a_flt)-1):
@@ -262,6 +277,9 @@ for S,F,paths in zip(S_all,F_all,paths_all):
         fs=np.array(fs)
         ax3.plot(ts,fs,c='w')
     l+=L-1
+
+for l in xrange(0,len(a_flt)-L,L-1):
+    ax3.plot([l*H/float(Fs),l*H/float(Fs)],[f_min,f_max],c='w',ls=':')
 
 ax1.set_ylim(f_min,f_max)
 ax1.set_xlim(0.,(h-H)/float(Fs))

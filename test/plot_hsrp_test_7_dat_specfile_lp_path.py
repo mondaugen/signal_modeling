@@ -201,14 +201,14 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
+        for r,clr__ in zip(np.c_[h_e,w0_e,w1_e],clr_e):
             # Source 1 'b'
-            if (r[4]=='b'):
+            if (clr__=='b'):
                 ls_=ls_s1
                 lc_=lc_s1
                 lgd_ax3_idx=0
             # Source 2 'c'
-            elif (r[4]=='c'):
+            elif (clr__=='c'):
                 ls_=ls_s2
                 lc_=lc_s2
                 lgd_ax3_idx=1
@@ -248,16 +248,16 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         ls_c=ps_v2_c
         lgd_ax4[6]=ax4.scatter(h_e[0],m0[1]+np.sqrt(s0[1]),marker=ls_s,c=ls_c,s=80)
         lgd_ax4[6]=ax4.scatter(h_e[0],m0[1]-np.sqrt(s0[1]),marker=ls_s,c=ls_c,s=80)
-        for r in np.c_[h_e,a0,clr_e]:
+        for r,clr__ in zip(np.c_[h_e,a0],clr_e):
             # Source 1 'b'
-            if (r[2]=='b'):
+            if (clr__=='b'):
                 ls_s=ps_s1_s
                 ls_c=ps_s1_c
                 lw_=0
                 lgd_ax4_idx=0
                 n_s1+=1
             # Source 2 'c'
-            elif (r[2]=='c'):
+            elif (clr__=='c'):
                 ls_s=ps_s2_s
                 ls_c=ps_s2_c
                 lw_=0
@@ -281,9 +281,9 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
+        for r,clr__ in zip(np.c_[h_e,w0_e,w1_e],clr_e):
             # Source 1 'b'
-            if (r[4]=='b'):
+            if (clr__=='b'):
                 ls_='k-'#ls_s1
                 lgd_ax5_idx=0
                 lgd_ax5[lgd_ax5_idx]=ax5.plot(r[0:2],r[2:4],ls_)[0]
@@ -305,9 +305,9 @@ for fname_idx_ in xrange(fname_idx0,fname_idx1+1):
         N_w0_e=len(w0_e)
         h_e=h+H*np.c_[-0.5*np.ones(N_w0_e),0.5*np.ones(N_w0_e)]
         h_e/=float(Fs)
-        for r in np.c_[h_e,w0_e,w1_e,clr_e]:
+        for r,clr__ in zip(np.c_[h_e,w0_e,w1_e],clr_e):
             # Source 2 'c'
-            if (r[4]=='c'):
+            if (clr__=='c'):
                 ls_='k-'#ls_s2
                 lgd_ax6_idx=0
                 lgd_ax6[lgd_ax6_idx]=ax6.plot(r[0:2],r[2:4],ls_)[0]
@@ -713,7 +713,7 @@ ax21.set_xlim(-0.5,len(q_lp[0])-1+0.5)
 ax22.set_xlim(-0.5,len(q_lp[0])-1+0.5)
 ax21.set_title('Smoothed frequency paths')
 ax22.set_title('Smoothed amplitude paths')
-ax22.set_xlabel('Frame number $t$')
+ax22.set_xlabel('Frame number $h$')
 #ax21.legend(ax21_lgd,
 #    ('Original Source 1',
 #        'Original Source 2',
