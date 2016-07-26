@@ -69,14 +69,20 @@ with open(chirp_param_out_path,'w') as fo:
     for k in np.arange(1,K+1):
         phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
         x0_n+=np.exp(1j*phi_n)
-        fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
-                (k_fo,a0_0,a0_1*k,a0_2*k*1.e6,f0_0*k,f0_1*k))
+        #fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
+        #        (k_fo,a0_0,a0_1*k,a0_2*k*1.e6,f0_0*k,f0_1*k))
+        a0_2_exp=np.floor(np.log10(np.abs(a0_2*k)))
+        fo.write('%d & %d & %2.2f & %2.2f $\\times 10^{%d}$ & %d & %d \\\\\n' %
+                (k_fo,a0_0,a0_1*k,a0_2*k/(10.**a0_2_exp),int(a0_2_exp),f0_0*k,f0_1*k))
         k_fo+=1
     for k in np.arange(1,K+1):
         phi_n=np.polyval([0.5*a1_2*k,a1_1*k,a1_0],n)
         x1_n+=np.exp(1j*phi_n)
-        fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
-                (k_fo,a1_0,a1_1*k,a1_2*k*1.e6,f1_0*k,f1_1*k))
+        #fo.write('%d & %2.2f & %2.2f & %2.2f $\\times 10^{-6}$ & %d & %d \\\\\n' %
+        #        (k_fo,a1_0,a1_1*k,a1_2*k*1.e6,f1_0*k,f1_1*k))
+        a1_2_exp=np.floor(np.log10(np.abs(a1_2*k)))
+        fo.write('%d & %d & %2.2f & %2.2f $\\times 10^{%d}$ & %d & %d \\\\\n' %
+                (k_fo,a1_0,a1_1*k,a1_2*k/(10.**a1_2_exp),int(a1_2_exp),f0_0*k,f0_1*k))
         k_fo+=1
 #for k in np.arange(1,K+1):
 #    phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)
