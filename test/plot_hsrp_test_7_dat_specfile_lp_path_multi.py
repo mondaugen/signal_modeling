@@ -16,6 +16,8 @@ import matplotlib.lines as mlines
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
+mpl.rcParams['legend.fontsize']='small'
+mpl.rcParams['axes.titlesize']='medium'
 
 #show_plots=False
 show_plots=False
@@ -597,7 +599,7 @@ for fname_idx_ in xrange(N_plts):
     if (fname_idx_%N_cols)==0:
         ax13[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
     ax13[(fname_idx_/N_cols),fname_idx_%N_cols].xaxis.set_major_formatter(ticks_spec_time)
-#    ax13[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Spectrogram of source 1 (true)')
+    ax13[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     
     ax14[(fname_idx_/N_cols),fname_idx_%N_cols].specgram(x_s2_th,Fs=2.*np.pi,cmap='Greys')
     ax14[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.,(h-H)/(2.*np.pi))
@@ -607,14 +609,14 @@ for fname_idx_ in xrange(N_plts):
     if (fname_idx_%N_cols)==0:
         ax14[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
     ax14[(fname_idx_/N_cols),fname_idx_%N_cols].xaxis.set_major_formatter(ticks_spec_time)
-#    ax14[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Spectrogram of source 2 (true)')
+    ax14[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     
     ax15[(fname_idx_/N_cols),fname_idx_%N_cols].plot(np.arange(len(x_s1_th))/float(Fs),np.real(x_s1_th),c='k')
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax15[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax15[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Value (real part)')
-#    ax15[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 1 (true)')
+    ax15[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax15[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.,(h-H)/float(Fs))
     
     ax16[(fname_idx_/N_cols),fname_idx_%N_cols].plot(np.arange(len(x_s2_th))/float(Fs),np.real(x_s2_th),c='k')
@@ -622,17 +624,18 @@ for fname_idx_ in xrange(N_plts):
         ax16[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax16[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Value (real part)')
-#    ax16[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 2 (true)')
+    ax16[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax16[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.,(h-H)/float(Fs))
     
     #ax17[(fname_idx_/N_cols),fname_idx_%N_cols].plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
     #        a_s1_th.T,ls='-',c='k')
-#    ax17[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Amplitude function for each source (true)')
+    ax17[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax17[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax17[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Amplitude')
-#    ax17[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax17_lgd,('Source 1','Source 2'))
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax17[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax17_lgd,('Source 1','Source 2'),loc='upper right')
     ax17[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     #ax18[(fname_idx_/N_cols),fname_idx_%N_cols].plot(np.multiply.outer(np.ones((K,)),np.arange(a_s2_th.shape[1])).T,
     #        a_s2_th.T,ls='-',c='k')
@@ -642,27 +645,29 @@ for fname_idx_ in xrange(N_plts):
         ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('$\\mu_{k,p}$')
-#    ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Amplitude modulation (true)')
+    ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     mima_am_de=(max_am-min_am)*0.1
     ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(min_am-mima_am_de,max_am+mima_am_de)
     ax19[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.,(h-H)/float(Fs))
-#    ax19[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax19_lgd,('Source 1','Source 2'))
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax19[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax19_lgd,('Source 1','Source 2'),loc='upper right')
     
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('$\\psi_{k,p}$')
-#    ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Frequency modulation (true)')
+    ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     mima_fm_de=(max_fm-min_fm)*0.1
     ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(min_fm-mima_fm_de,max_fm+mima_fm_de)
     ax20[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.,(h-H)/float(Fs))
-#    ax20[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax20_lgd,('Source 1','Source 2'))
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax20[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax20_lgd,('Source 1','Source 2'),loc='upper right')
     
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 2 (estimated)')
+    ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax6[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -670,7 +675,7 @@ for fname_idx_ in xrange(N_plts):
         ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 1 (estimated)')
+    ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax5[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -678,7 +683,7 @@ for fname_idx_ in xrange(N_plts):
         ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('1st PC')
-#    ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Principal components and their classification')
+    ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0.1,0.5)
     ax4[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(-0.0008,0.0008)
     
@@ -686,7 +691,7 @@ for fname_idx_ in xrange(N_plts):
         ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Classified data-points')
+    ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax3[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -696,20 +701,20 @@ for fname_idx_ in xrange(N_plts):
         ax2[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax2[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax2[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Original and spurious data-points')
+    ax2[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax1[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax1[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax1[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Original data-points')
+    ax1[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax1[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 1 (estimated) after smooth frequency path search')
+    ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax7[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -717,7 +722,7 @@ for fname_idx_ in xrange(N_plts):
         ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 2 (estimated) after smooth frequency path search')
+    ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax8[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -725,7 +730,7 @@ for fname_idx_ in xrange(N_plts):
         ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 1 (estimated) after smooth amplitude path search')
+    ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax11[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -733,7 +738,7 @@ for fname_idx_ in xrange(N_plts):
         ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 2 (estimated) after smooth amplitude path search')
+    ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax12[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -741,7 +746,7 @@ for fname_idx_ in xrange(N_plts):
         ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 1 partials (true)')
+    ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax9[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
@@ -749,22 +754,26 @@ for fname_idx_ in xrange(N_plts):
         ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlabel('Time (seconds)')
     if (fname_idx_%N_cols)==0:
         ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
-#    ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Source 2 partials (true)')
+    ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%d.'%(fname_idx_+1,))
     ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(0,(h-H)/float(Fs))
     ax10[(fname_idx_/N_cols),fname_idx_%N_cols].set_ylim(0,np.pi)
     
-#    ax1[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax1,('Source 1','Source 2'))
-#    ax3[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax3,('Source 1','Source 2','Spurious'))
-#    ax4[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax4,('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
-#                        '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
-#                        '$\\pm \\sigma_{1}^{0}$'))
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax1[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax1,('Source 1','Source 2'),loc='upper right')
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax3[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax3,('Source 1','Source 2','Spurious'),loc='upper right')
+    if ((fname_idx_/N_cols)==0) and ((fname_idx_%N_cols)==(N_cols-1)):
+        ax4[(fname_idx_/N_cols),fname_idx_%N_cols].legend(lgd_ax4,
+                ('Source 1','Source 2','Spurious','$\\mu_{0}^{0}$',
+                        '$\\mu_{1}^{0}$','$\\pm \\sigma_{0}^{0}$',
+                        '$\\pm \\sigma_{1}^{0}$'),loc='upper right')
     
     ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].get_yaxis().set_visible(False)
     ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].get_yaxis().set_visible(False)
     ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].set_xlim(-0.5,len(q_lp[0])-1+0.5)
     ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_xlim(-0.5,len(q_lp[0])-1+0.5)
-#    ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Smoothed frequency paths')
-#    ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_title('Smoothed amplitude paths')
+    ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].set_title('%da.'%(fname_idx_+1,),fontsize='small')
+    ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_title('%db.'%(fname_idx_+1,),fontsize='small')
     if (fname_idx_/N_cols) == (N_plts/N_cols-1):
         ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_xlabel('Frame number $h$')
     #ax21[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax21_lgd,
@@ -773,6 +782,29 @@ for fname_idx_ in xrange(N_plts):
     #        'Source 1',
     #        'Source 2'))
     #ax22[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax22_lgd,('Source 1','Source 2'))
+    
+    fig13.suptitle('Spectrogram of source 1 (true)')
+    fig14.suptitle('Spectrogram of source 2 (true)')
+    fig15.suptitle('Source 1 (true)')
+    fig16.suptitle('Source 2 (true)')
+    fig17.suptitle('Amplitude function for each source (true)')
+    fig19.suptitle('Amplitude modulation (true)')
+    fig20.suptitle('Frequency modulation (true)')
+    fig6.suptitle('Source 2 (estimated)')
+    fig5.suptitle('Source 1 (estimated)')
+    fig4.suptitle('Principal components and their classification')
+    fig3.suptitle('Classified data-points')
+    fig2.suptitle('Original and spurious data-points')
+    fig1.suptitle('Original data-points')
+    fig7.suptitle('Source 1 (estimated) after smooth frequency path search')
+    fig8.suptitle('Source 2 (estimated) after smooth frequency path search')
+    fig11.suptitle('Source 1 (estimated) after smooth amplitude path search')
+    fig12.suptitle('Source 2 (estimated) after smooth amplitude path search')
+    fig9.suptitle('Source 1 partials (true)')
+    fig10.suptitle('Source 2 partials (true)')
+    fig21.suptitle('Smoothed paths')
+#    ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Smoothed frequency paths')
+#    ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_title('Smoothed amplitude paths')
 
 outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/hsrp_test_7_multi_'
 
