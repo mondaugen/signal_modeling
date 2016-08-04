@@ -9,54 +9,53 @@ plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-plotoutpath+='mq_mod_err_comp_'
+plotoutpath+='mq_exp_err_comp_'
 
 phase_err_mod_2pi=True
 
 fpre=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 labels={
-        'mq_mod_quintic':'DDM Quintic',
-        'mq_mod_cubic':'DDM Cubic',
-        'mq_cubic': 'MQ Cubic',
+        'mq_exp_mod_quintic':'DDM Quintic',
+        'mq_exp_mod_cubic':'DDM Cubic',
+        'mq_exp': 'MQ Cubic',
         'true_arg': 'True'
 }
 line_styles={
-        'mq_mod_quintic':':',
-        'mq_mod_cubic':'--',
-        'mq_cubic':'-', 
+        'mq_exp_mod_quintic':':',
+        'mq_exp_mod_cubic':'--',
+        'mq_exp':'-', 
         'true_arg':'-'
 }
 colors={
-        'mq_mod_quintic':'k',
-        'mq_mod_cubic':'k',
-        'mq_cubic':'k',
+        'mq_exp_mod_quintic':'k',
+        'mq_exp_mod_cubic':'k',
+        'mq_exp':'k',
         'true_arg':'grey'
 }
 d_ph={
-    'mq_mod_quintic': None,
-    'mq_mod_cubic': None,
-    'mq_cubic': None
+    'mq_exp_mod_quintic': None,
+    'mq_exp_mod_cubic': None,
+    'mq_exp': None
 }
-
 d_x={
-    'mq_mod_quintic': None,
-    'mq_mod_cubic': None,
-    'mq_cubic': None,
+    'mq_exp_mod_quintic': None,
+    'mq_exp_mod_cubic': None,
+    'mq_exp': None,
 }
-
-for k in d_x.keys():
-    d_x[k]=np.fromfile(fpre+k+'_est_x.dat',dtype='complex_')
-d_x['true_arg']=np.fromfile(fpre+'mq_cubic'+'_true_x.dat',dtype='complex_')
 
 for k in d_ph.keys():
     with open(fpre+k+'_arg_ph.f64','r') as f:
         d_ph[k]=np.fromfile(f,dtype='double')
-        N=len(d_ph[k])
-with open(fpre+'mq_mod_quintic_arg_ph_x.f64','r') as f:
+with open(fpre+'mq_exp_mod_quintic_arg_ph_x.f64','r') as f:
     d_ph['true_arg']=np.fromfile(f,dtype='double')
-n=np.arange(N)
+for k in d_x.keys():
+    d_x[k]=np.fromfile(fpre+k+'_est_x.dat',dtype='complex_')
+d_x['true_arg']=np.fromfile(fpre+'mq_exp'+'_true_x.dat',dtype='complex_')
+
 plt.figure(1)
 for k in d_ph.keys():
+    N=len(d_ph[k])
+    n=np.arange(N)
     plt.plot(n,np.unwrap(d_ph[k]),color=colors[k],ls=line_styles[k],label=labels[k])
 plt.legend()
 plt.title('Phase function')
@@ -67,19 +66,19 @@ plt.ylabel('Phase (radians)')
 plt.savefig(plotoutpath+'phase_func.eps')
 
 d_a={
-    'mq_mod_quintic': None,
-    'mq_mod_cubic': None,
-    'mq_cubic': None
+    'mq_exp_mod_quintic': None,
+    'mq_exp_mod_cubic': None,
+    'mq_exp': None
 }
 for k in d_a.keys():
     with open(fpre+k+'_arg_a.f64','r') as f:
         d_a[k]=np.fromfile(f,dtype='double')
-        N=len(d_a[k])
-with open(fpre+'mq_mod_quintic_arg_a_x.f64','r') as f:
+with open(fpre+'mq_exp_mod_quintic_arg_a_x.f64','r') as f:
     d_a['true_arg']=np.fromfile(f,dtype='double')
-n=np.arange(N)
 plt.figure(2)
 for k in d_a.keys():
+    N=len(d_a[k])
+    n=np.arange(N)
     plt.plot(n,np.unwrap(d_a[k]),
             color=colors[k],
             ls=line_styles[k],
@@ -94,7 +93,9 @@ plt.savefig(plotoutpath+'logamp_func.eps')
 
 plt.figure(3)
 for k in d_ph.keys():
-    tmp=d_ph[k]-d_ph['true_arg']
+    N=min(len(d_ph[k]),len(d_ph['true_arg']))
+    n=np.arange(N)
+    tmp=d_ph[k][:N]-d_ph['true_arg'][:N]
     if (phase_err_mod_2pi):
         tmp+=np.pi
         tmp%=(2.*np.pi)
@@ -113,8 +114,11 @@ plt.savefig(plotoutpath+'phase_err.eps')
 
 plt.figure(4)
 for k in d_a.keys():
+    N=min(len(d_a[k]),len(d_a['true_arg']))
+    n=np.arange(N)
+    tmp=d_a[k][:N]-d_a['true_arg'][:N]
     #plt.plot(n,np.unwrap(d_a[k])-d_a['true_arg'],
-    plt.plot(n,d_a[k]-d_a['true_arg'],
+    plt.plot(n,tmp,
             color=colors[k],
             ls=line_styles[k],
             label=labels[k])
@@ -142,7 +146,7 @@ plt.title('Original vs. estimated signals: upper error bound')
 plt.xlabel('Time (samples)')
 plt.ylabel('Error (dB power)')
 plt.xlim([0,7750])
-plt.legend(loc='best')
+plt.legend(loc='lower right')
 plt.savefig(plotoutpath+'true_vs_est_err.eps')
 
 if (show_plots):

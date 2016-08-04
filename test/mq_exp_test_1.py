@@ -14,58 +14,48 @@ clr_gamma=3.
 clr_mapper=nep.PowerNormalize(clr_gamma)
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-plotoutpath+='mq_cubic'
+plotoutpath+='mq_exp'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
 
 # Hop size
-H=256
+H=128
 # Analysis window / FFT size
-N=1024
+N=512
 # Sample rate
 Fs=16000.
 
-# Time points freq
-t_t=np.r_[0.,0.25,0.5]*1.
-# signal frequency breakpoints (Hz)
-f_t=np.r_[100.,200.,100.]
-#f_t=np.r_[100.,102.,100.]
-# Time points 
-t_a=np.r_[0.,0.1,0.3,0.5]*1.
-# sample indices at time points
-m_t=t_t*Fs
-# sample indices at time points
-m_t_a=t_a*Fs
-# signal amplitude breakpoints (dB)
-a_t=np.r_[-10,0,0,-10]
-# fit polynomial to amplitude function
-d_a=np.polyfit(m_t_a,np.log(10.**(a_t/20.)),len(a_t)-1)
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
 M=int(np.floor(Fs*T_x))+N
 # sample indices
 m=np.arange(M)
-# angular velocities
-w_t=f_t/Fs*2.*np.pi
-#print w_t
 # initial phase
 phi_0=0.
 
-# Fit polynomial to frequency function
-d_=np.polyfit(m_t,w_t,len(w_t)-1)
-# Phase function integral of frequency function with initial phase as smallest
-# coefficient
-d=np.polyint(d_,k=phi_0)
+# Start pitch
+pch_0=0
+# End pitch
+pch_1=12.
+# Exponential coefficients
+b0=pch_0/12.
+b1=pch_1/12./T_x
+b=np.log(2.)*np.r_[b1,b0]
+# Frequency of pitch of no transposition (Hz)
+f0=440.
+t_x=m/Fs
+f_t=f0*np.exp(np.polyval(b,t_x))
+
 # Synthesize signal
-arg_ph_x=np.polyval(d,m)
+arg_ph_x=2.*np.pi*f0/(np.log(2.)*b1)*np.exp(np.polyval(b,t_x))+phi_0
 with open(plotoutpath+'_arg_ph_x.f64','w') as f:
     arg_ph_x.tofile(f)
-arg_a_x=np.polyval(d_a,m)
+arg_a_x=np.ones(M)
 with open(plotoutpath+'_arg_a_x.f64','w') as f:
     arg_a_x.tofile(f)
-x=np.exp(1j*arg_ph_x)*np.exp(arg_a_x)
+x=np.exp(1j*arg_ph_x)
 
 # Estimated parameters
 th=[]
@@ -173,7 +163,7 @@ with open(plotoutpath+'_est_x.dat','w') as f:
     y.tofile(f)
 
 plt.figure(2)
-plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
+bins_,freqs_,Pxx_,im_=plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
 plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -196,7 +186,7 @@ plt.savefig(plotoutpath+'_orig_vs_est.eps')
 plt.figure(4)
 plt.plot(m/float(Fs),20.*np.log10(np.abs(y-x)),c='k')
 plt.gca().set_xlim(0,(h-N)/float(Fs))
-plt.title('Original vs. estimated signal: error')
+plt.title('Error signal (db Error)')
 plt.ylabel('Amplitude (dB power)')
 plt.xlabel('Time (seconds)')
 plt.savefig(plotoutpath+'_error.eps')

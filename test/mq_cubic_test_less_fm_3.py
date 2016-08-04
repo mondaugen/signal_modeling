@@ -7,8 +7,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sigmod as sm
+import neplot as nep
 
 show_plots=True
+
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=4.
+clr_mapper=nep.PowerNormalize(clr_gamma)
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='mq_mod_quintic'
@@ -77,7 +83,7 @@ W,dW=sm.w_dw_sum_cos(N,'c1-blackman-4')
 
 # Plot
 plt.figure(1)
-plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
 plt.title('Original signal: (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -205,9 +211,15 @@ with open(plotoutpath+'_arg_ph.f64','w') as f:
 with open(plotoutpath+'_arg_a.f64','w') as f:
     arg_a.tofile(f)
 
+# Save true and estimated signals
+with open(plotoutpath+'_true_x.dat','w') as f:
+    x.tofile(f)
+with open(plotoutpath+'_est_x.dat','w') as f:
+    y.tofile(f)
+
 
 plt.figure(2)
-plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
 plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -230,19 +242,22 @@ plt.savefig(plotoutpath+'_orig_vs_est.eps')
 plt.figure(4)
 plt.plot(m/float(Fs),20.*np.log10(np.abs(y-x)),c='k')
 plt.gca().set_xlim(0,(h-N)/float(Fs))
-plt.title('Error signal (db Error)')
+plt.title('Original vs. estimated signal: error')
 plt.ylabel('Amplitude (dB power)')
 plt.xlabel('Time (seconds)')
 plt.savefig(plotoutpath+'_error.eps')
 plt.figure(5)
-plt.plot(range(len(eb_ph)),[np.log(eb_ph_)/np.log(10.) for eb_ph_ in
-    eb_ph],label="Phase",c='k',ls='-')
-plt.plot(range(len(eb_a)),[np.log(eb_a_)/np.log(10.) for eb_a_ in eb_a],
+tmp=np.array([np.log(eb_ph_)/np.log(10.) for eb_ph_ in
+    eb_ph])
+ma_,mai_=sm.lextrem(tmp,comp='max')
+plt.plot(np.arange(len(eb_ph))[mai_],tmp[mai_],label="Phase",c='k',ls='-')
+tmp=np.array([np.log(eb_a_)/np.log(10.) for eb_a_ in eb_a])
+ma_,mai_=sm.lextrem(tmp,comp='max')
+plt.plot(np.arange(len(eb_a))[mai_],tmp[mai_],
         label="Amplitude",c='k',ls=':')
-plt.xlabel('Sample number')
 plt.ylabel('Absolute error bound ($\log_{10}$)')
 plt.title('Polynomial evaluation error bound')
-plt.legend()
+plt.legend(loc='best')
 plt.savefig(plotoutpath+'_poly_eval_err.eps')
 plt.figure(6)
 plt.plot(np.arange(len(eb_c5)),np.log(np.array([eb_c5,eb_c4,eb_c3,eb_d5,eb_d4,eb_d3]).T)/np.log(10.))

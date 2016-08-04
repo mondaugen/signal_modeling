@@ -7,11 +7,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sigmod as sm
+import matplotlib.colors as colors
+import neplot as nep
 
-show_plots=False
+show_plots=True
+
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=3.
+clr_mapper=nep.PowerNormalize(clr_gamma)
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
-plotoutpath+='mq_mod_quintic'
+plotoutpath+='mq_exp_mod_quintic'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -21,49 +28,53 @@ H=256
 # Analysis window / FFT size
 N=1024
 
-# Time points
-t_t=np.r_[0.,0.25,0.5]*1.
-# signal starts at 100 Hz, goes to 110Hz and ends at 105Hz
-f_t=np.r_[100.,500.,200.]
-# Amplitude constant
-A_t=np.ones(len(f_t))
 # Sample rate
 Fs=16000.
+
 # Length of signal, seconds
 T_x=0.5
 # Length in samples
 M=int(np.floor(Fs*T_x))+N
 # sample indices
 m=np.arange(M)
-# angular velocities
-w_t=f_t/Fs*2.*np.pi
-#print w_t
 # initial phase
 phi_0=0.
-# sample indices at time points
-m_t=t_t*Fs
 
-# Fit polynomial to frequency function
-d_=np.polyfit(m_t,w_t,len(w_t)-1)
-# Phase function integral of frequency function with initial phase as smallest
-# coefficient
-d=np.polyint(d_,k=phi_0)
+# Start pitch
+pch_0=0
+# End pitch
+pch_1=12.
+# Exponential coefficients
+b0=pch_0/12.
+b1=pch_1/12./T_x
+b=np.log(2.)*np.r_[b1,b0]
+# Frequency of pitch of no transposition (Hz)
+f0=440.
+t_x=m/Fs
+f_t=f0*np.exp(np.polyval(b,t_x))
+
 # Synthesize signal
-x=np.exp(1j*np.polyval(d,m))
+arg_ph_x=2.*np.pi*f0/(np.log(2.)*b1)*np.exp(np.polyval(b,t_x))+phi_0
+with open(plotoutpath+'_arg_ph_x.f64','w') as f:
+    arg_ph_x.tofile(f)
+arg_a_x=np.ones(M)
+with open(plotoutpath+'_arg_a_x.f64','w') as f:
+    arg_a_x.tofile(f)
+x=np.exp(1j*arg_ph_x)
 
 # Estimated parameters
 th=[]
 # Hop size
-H=256
+H=128
 # Analysis window / FFT size
-N=1024
+N=512
 # Analysis window indices
 n=np.arange(N)
 W,dW=sm.w_dw_sum_cos(N,'c1-blackman-4')
 
 # Plot
 plt.figure(1)
-plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
 plt.title('Original signal: (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -87,9 +98,13 @@ eb_d3=[]
 eb_ph=[]
 eb_a=[]
 
-# Synthesize using modified McAulay & Quatieri quartic phase method
+# Synthesize using modified McAulay & Quatieri quintic phase method
 h=0
 y=np.zeros(len(x)).astype('complex_')
+# Argument x of phase function exp(j*x)
+arg_ph=np.zeros(len(x)).astype('double')
+# Argument x of amplitude function exp(j*x)
+arg_a=np.zeros(len(x)).astype('double')
 for i in xrange(len(th)-1):
     phi_i0=np.imag(th[i][0])
     phi_i1=np.imag(th[i+1][0])
@@ -130,6 +145,7 @@ for i in xrange(len(th)-1):
     c=np.r_[c5,c4,c3,c2,c1,c0]
     # evaluate phase polynomial
     ph_,eb_ph_=sm.polyval_mu(c,np.arange(H))
+    arg_ph[h:h+H]=ph_
     eb_ph += list(eb_ph_)
     y[h:h+H]=np.exp(1j*ph_)
     # compute amplitude polynomial coefficients
@@ -175,14 +191,26 @@ for i in xrange(len(th)-1):
     d0=a0_i0
     d=np.r_[d5,d4,d3,d2,d1,d0]
    # Multiply by amplitude function
-    y[h:h+H]*=np.exp(np.polyval(d,np.arange(H)))
-    a_,eb_a_=sm.polyval_mu(d,np.arange(H))
+    arg_a[h:h+H],eb_a_=sm.polyval_mu(d,np.arange(H))
+    y[h:h+H]*=np.exp(arg_a[h:h+H])
     eb_a += list(eb_a_)
-    y[h:h+H]*=np.exp(a_)
     h+=H
 
+# Save phase and log-amplitude polynomials
+with open(plotoutpath+'_arg_ph.f64','w') as f:
+    arg_ph.tofile(f)
+with open(plotoutpath+'_arg_a.f64','w') as f:
+    arg_a.tofile(f)
+
+# Save true and estimated signals
+with open(plotoutpath+'_true_x.dat','w') as f:
+    x.tofile(f)
+with open(plotoutpath+'_est_x.dat','w') as f:
+    y.tofile(f)
+
+
 plt.figure(2)
-plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,cmap="Greys")
+plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
 plt.title('Estimated signal (spectrogram)')
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
@@ -210,11 +238,19 @@ plt.ylabel('Amplitude (dB power)')
 plt.xlabel('Time (seconds)')
 plt.savefig(plotoutpath+'_error.eps')
 plt.figure(5)
-plt.plot(range(len(eb_ph)),[np.log(eb_ph_)/np.log(10.) for eb_ph_ in eb_ph])
-plt.plot(range(len(eb_a)),[np.log(eb_a_)/np.log(10.) for eb_a_ in eb_a])
+tmp=np.array([np.log(eb_ph_)/np.log(10.) for eb_ph_ in
+    eb_ph])
+ma_,mai_=sm.lextrem(tmp,comp='max')
+plt.plot(np.arange(len(eb_ph))[mai_],tmp[mai_],label="Phase",c='k',ls='-')
+tmp=np.array([np.log(eb_a_)/np.log(10.) for eb_a_ in eb_a])
+ma_,mai_=sm.lextrem(tmp,comp='max')
+plt.plot(np.arange(len(eb_a))[mai_],tmp[mai_],
+        label="Amplitude",c='k',ls=':')
 plt.xlabel('Sample number')
-plt.ylabel('Absolute error bound')
+plt.ylabel('Absolute error bound ($\log_{10}$)')
 plt.title('Polynomial evaluation error bound')
+plt.legend(loc='best')
+plt.savefig(plotoutpath+'_poly_eval_err.eps')
 plt.figure(6)
 plt.plot(np.arange(len(eb_c5)),np.log(np.array([eb_c5,eb_c4,eb_c3,eb_d5,eb_d4,eb_d3]).T)/np.log(10.))
 plt.xlabel('Frame number')

@@ -88,7 +88,17 @@ for h in np.arange(0,M-N,H):
     else:
         Xma_=np.abs(X_)[kma]
     # Store phase, frequency, amplitude
-    th.append([np.angle(X_[kma]),kma/float(N_fft)*2.*np.pi,Xma_])
+    # Linearly interpolate phase
+    #ph_=np.interp(kma,np.r_[np.floor(kma),np.ceil(kma)],
+    #        np.r_[np.angle(X_[np.floor(kma)]),np.angle(X_[np.ceil(kma)])])
+    # Choose phase of closest bin to estimated frequency
+#    ph_=np.angle(X_[np.round(kma)])
+    # Estimate initial phase using refined frequency estimate:
+    gam=np.exp(1.j*kma/float(N_fft)*2.*np.pi*np.arange(N))
+    ph_=(np.log(np.inner(x_,np.conj(gam)))
+        -np.log(np.inner(gam,np.conj(gam)))).imag
+    #th.append([np.angle(X_[kma]),kma/float(N_fft)*2.*np.pi,Xma_])
+    th.append([ph_,kma/float(N_fft)*2.*np.pi,Xma_])
 
 # Synthesize using McAulay & Quatieri cubic phase method
 h=0
