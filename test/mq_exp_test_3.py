@@ -10,11 +10,11 @@ import sigmod as sm
 import matplotlib.colors as colors
 import neplot as nep
 
-show_plots=True
+show_plots=False
 
 # Color contrast config
 # values further from 1, more contrast
-clr_gamma=3.
+clr_gamma=4.
 clr_mapper=nep.PowerNormalize(clr_gamma)
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'

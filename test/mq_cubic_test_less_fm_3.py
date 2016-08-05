@@ -9,7 +9,7 @@ import os
 import sigmod as sm
 import neplot as nep
 
-show_plots=True
+show_plots=False
 
 # Color contrast config
 # values further from 1, more contrast
