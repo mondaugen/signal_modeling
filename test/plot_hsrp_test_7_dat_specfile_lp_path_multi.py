@@ -783,52 +783,72 @@ for fname_idx_ in xrange(N_plts):
     #        'Source 2'))
     #ax22[(fname_idx_/N_cols),fname_idx_%N_cols].legend(ax22_lgd,('Source 1','Source 2'))
     
-    fig13.suptitle('Spectrogram of source 1 (true)')
-    fig14.suptitle('Spectrogram of source 2 (true)')
-    fig15.suptitle('Source 1 (true)')
-    fig16.suptitle('Source 2 (true)')
-    fig17.suptitle('Amplitude function for each source (true)')
-    fig19.suptitle('Amplitude modulation (true)')
-    fig20.suptitle('Frequency modulation (true)')
-    fig6.suptitle('Source 2 (estimated)')
-    fig5.suptitle('Source 1 (estimated)')
-    fig4.suptitle('Principal components and their classification')
-    fig3.suptitle('Classified data-points')
-    fig2.suptitle('Original and spurious data-points')
-    fig1.suptitle('Original data-points')
-    fig7.suptitle('Source 1 (estimated) after smooth frequency path search')
-    fig8.suptitle('Source 2 (estimated) after smooth frequency path search')
-    fig11.suptitle('Source 1 (estimated) after smooth amplitude path search')
-    fig12.suptitle('Source 2 (estimated) after smooth amplitude path search')
-    fig9.suptitle('Source 1 partials (true)')
-    fig10.suptitle('Source 2 partials (true)')
-    fig21.suptitle('Smoothed paths')
+    fig13_suptitle='Spectrogram of source 1 (true)'
+    fig14_suptitle='Spectrogram of source 2 (true)'
+    fig15_suptitle='Source 1 (true)'
+    fig16_suptitle='Source 2 (true)'
+    fig17_suptitle='Amplitude function for each source (true)'
+    fig19_suptitle='Amplitude modulation (true)'
+    fig20_suptitle='Frequency modulation (true)'
+    fig6_suptitle='Source 2 (estimated)'
+    fig5_suptitle='Source 1 (estimated)'
+    fig4_suptitle='Principal components and their classification'
+    fig3_suptitle='Classified data-points'
+    fig2_suptitle='Original and spurious data-points'
+    fig1_suptitle='Original data-points'
+    fig7_suptitle='Source 1 (estimated) after smooth frequency path search'
+    fig8_suptitle='Source 2 (estimated) after smooth frequency path search'
+    fig11_suptitle='Source 1 (estimated) after smooth amplitude path search'
+    fig12_suptitle='Source 2 (estimated) after smooth amplitude path search'
+    fig9_suptitle='Source 1 partials (true)'
+    fig10_suptitle='Source 2 partials (true)'
+    fig21_suptitle='Smoothed paths'
 #    ax21_ax22[2*(fname_idx_/N_cols),fname_idx_%N_cols].set_title('Smoothed frequency paths')
 #    ax21_ax22[2*(fname_idx_/N_cols)+1,fname_idx_%N_cols].set_title('Smoothed amplitude paths')
 
 outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/hsrp_test_7_multi_'
 
 if (save_figs):
-    fig1.savefig(outfilepath+ 'orig_data.eps')
-    fig2.savefig(outfilepath+ 'orig_spur_data.eps')
-    fig3.savefig(outfilepath+ 'class_data.eps')
-    fig4.savefig(outfilepath+ 'class_pcs.eps')
-    fig5.savefig(outfilepath+ 'source_1_est.eps')
-    fig6.savefig(outfilepath+ 'source_2_est.eps')
-    fig7.savefig(outfilepath+ 'source_1_smooth_freq.eps')
-    fig8.savefig(outfilepath+ 'source_2_smooth_freq.eps')
-    fig9.savefig(outfilepath+ 'source_1_true.eps')
-    fig10.savefig(outfilepath+'source_2_true.eps')
-    fig11.savefig(outfilepath+'source_1_smooth_amp.eps')
-    fig12.savefig(outfilepath+'source_2_smooth_amp.eps')
-    fig13.savefig(outfilepath+'source_1_spec.eps')
-    fig14.savefig(outfilepath+'source_2_spec.eps')
-    fig15.savefig(outfilepath+'source_1_tdrp.eps')
-    fig16.savefig(outfilepath+'source_2_tdrp.eps')
-    fig17.savefig(outfilepath+'af.eps')
-    fig19.savefig(outfilepath+'mu.eps')
-    fig20.savefig(outfilepath+'psi.eps')
-    fig21.savefig(outfilepath+'smooth_freq_amp_sol.eps')
+    with open(outfilepath+'orig_data_plot_title.txt','w') as f:
+        f.write(fig1_suptitle)
+    with open(outfilepath+'orig_spur_data_plot_title.txt','w') as f:
+        f.write(fig2_suptitle)
+    with open(outfilepath+'class_data_plot_title.txt','w') as f:
+        f.write(fig3_suptitle)
+    with open(outfilepath+'class_pcs_plot_title.txt','w') as f:
+        f.write(fig4_suptitle)
+    with open(outfilepath+'source_1_est_plot_title.txt','w') as f:
+        f.write(fig5_suptitle)
+    with open(outfilepath+'source_2_est_plot_title.txt','w') as f:
+        f.write(fig6_suptitle)
+    with open(outfilepath+'source_1_smooth_freq_plot_title.txt','w') as f:
+        f.write(fig7_suptitle)
+    with open(outfilepath+'source_2_smooth_freq_plot_title.txt','w') as f:
+        f.write(fig8_suptitle)
+    with open(outfilepath+'source_1_true_plot_title.txt','w') as f:
+        f.write(fig9_suptitle)
+    with open(outfilepath+'source_2_true_plot_title.txt','w') as f:
+        f.write(fig10_suptitle)
+    with open(outfilepath+'source_1_smooth_amp_plot_title.txt','w') as f:
+        f.write(fig11_suptitle)
+    with open(outfilepath+'source_2_smooth_amp_plot_title.txt','w') as f:
+        f.write(fig12_suptitle)
+    with open(outfilepath+'source_1_spec_plot_title.txt','w') as f:
+        f.write(fig13_suptitle)
+    with open(outfilepath+'source_2_spec_plot_title.txt','w') as f:
+        f.write(fig14_suptitle)
+    with open(outfilepath+'source_1_tdrp_plot_title.txt','w') as f:
+        f.write(fig15_suptitle)
+    with open(outfilepath+'source_2_tdrp_plot_title.txt','w') as f:
+        f.write(fig16_suptitle)
+    with open(outfilepath+'af_plot_title.txt','w') as f:
+        f.write(fig17_suptitle)
+    with open(outfilepath+'mu_plot_title.txt','w') as f:
+        f.write(fig19_suptitle)
+    with open(outfilepath+'psi_plot_title.txt','w') as f:
+        f.write(fig20_suptitle)
+    with open(outfilepath+'smooth_freq_amp_sol_plot_title.txt','w') as f:
+        f.write(fig21_suptitle)
 
 with open(outfilepath+'_plots.INFO','w') as f:
     f.write(infotext)
