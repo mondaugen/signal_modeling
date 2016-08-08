@@ -2,6 +2,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import sigmod as sm
+import neplot as nep
+
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=4.
+clr_mapper=nep.PowerNormalize(clr_gamma)
 
 show_plots=False
 
@@ -42,6 +48,13 @@ d_x={
     'mq_mod_quintic': None,
     'mq_mod_cubic': None,
     'mq_cubic': None,
+}
+
+d_xy={
+    'true_arg':(0,0),
+    'mq_cubic':(0,1),
+    'mq_mod_cubic':(1,0),
+    'mq_mod_quintic':(1,1)
 }
 
 for k in d_x.keys():
@@ -144,6 +157,28 @@ plt.ylabel('Error (dB power)')
 plt.xlim([0,7750])
 plt.legend(loc='best')
 plt.savefig(plotoutpath+'true_vs_est_err.eps')
+
+# Hop size
+H=128
+# Analysis window / FFT size
+N=512
+# Sample rate
+Fs=16000.
+
+plt.figure(6)
+fig6,asx5=plt.subplots(2,2,sharey=True,sharex=True,num=6)
+for k in d_xy.keys():
+    x_,y_=d_xy[k]
+    asx5[x_,y_].specgram(d_x[k],NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
+    asx5[x_,y_].set_xlim([0,7750./Fs])
+    asx5[x_,y_].set_ylim([50,300])
+    asx5[x_,y_].set_title(labels[k])
+    if (x_==1):
+        asx5[x_,y_].set_xlabel('Time (seconds)')
+    if (y_==0):
+        asx5[x_,y_].set_ylabel('Frequency (Hz)')
+fig6.suptitle('Spectrogram of original and resynthesized signals')
+plt.savefig(plotoutpath+'all_spect.eps')
 
 if (show_plots):
     plt.show()
