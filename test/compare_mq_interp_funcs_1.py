@@ -72,12 +72,14 @@ plt.figure(1)
 for k in d_ph.keys():
     plt.plot(n,np.unwrap(d_ph[k]),color=colors[k],ls=line_styles[k],label=labels[k])
 plt.legend()
-plt.title('Phase function')
+tmp_title='Phase function'
 plt.xlim([0,8000])
 plt.ylim([0,750])
 plt.xlabel('Time (samples)')
 plt.ylabel('Phase (radians)')
 plt.savefig(plotoutpath+'phase_func.eps')
+with open(plotoutpath+'phase_func.txt','w') as f:
+    f.write(tmp_title+'%')
 
 d_a={
     'mq_mod_quintic': None,
@@ -98,12 +100,14 @@ for k in d_a.keys():
             ls=line_styles[k],
             label=labels[k])
 plt.legend()
-plt.title('Log-amplitude function')
+tmp_title='Log-amplitude function'
 plt.xlim([2300,3900])
 plt.ylim([0.22,0.32])
 plt.xlabel('Time (samples)')
 plt.ylabel('Log-amplitude')
 plt.savefig(plotoutpath+'logamp_func.eps')
+with open(plotoutpath+'logamp_func.txt','w') as f:
+    f.write(tmp_title+'%')
 
 plt.figure(3)
 for k in d_ph.keys():
@@ -116,13 +120,15 @@ for k in d_ph.keys():
             color=colors[k],
             ls=line_styles[k],
             label=labels[k])
-plt.title('Phase function error')
+tmp_title='Phase function error'
 plt.xlim([0,7750])
 plt.ylim([-np.pi*1.1,np.pi*1.1])
 plt.xlabel('Time (samples)')
 plt.ylabel('Error (radians)')
 plt.legend(loc='best')
 plt.savefig(plotoutpath+'phase_err.eps')
+with open(plotoutpath+'phase_err.txt','w') as f:
+    f.write(tmp_title+'%')
 
 plt.figure(4)
 for k in d_a.keys():
@@ -132,12 +138,14 @@ for k in d_a.keys():
             ls=line_styles[k],
             label=labels[k])
 plt.legend()
-plt.title('Log-amplitude function error')
+tmp_title='Log-amplitude function error'
 plt.xlim([512,7750])
 plt.ylim([-0.06,0.06])
 plt.xlabel('Time (samples)')
 plt.ylabel('Error (log-amplitude)')
 plt.savefig(plotoutpath+'logamp_err.eps')
+with open(plotoutpath+'logamp_err.txt','w') as f:
+    f.write(tmp_title+'%')
 
 plt.figure(5)
 for k in d_x.keys():
@@ -151,12 +159,14 @@ for k in d_x.keys():
                 color=colors[k],
                 ls=line_styles[k],
                 label=labels[k])
-plt.title('Original vs. estimated signals: upper error bound')
+tmp_title='Original vs. estimated signals: upper error bound'
 plt.xlabel('Time (samples)')
 plt.ylabel('Error (dB power)')
 plt.xlim([0,7750])
 plt.legend(loc='best')
 plt.savefig(plotoutpath+'true_vs_est_err.eps')
+with open(plotoutpath+'true_vs_est_err.txt','w') as f:
+    f.write(tmp_title+'%')
 
 # Hop size
 H=128
@@ -177,8 +187,10 @@ for k in d_xy.keys():
         asx5[x_,y_].set_xlabel('Time (seconds)')
     if (y_==0):
         asx5[x_,y_].set_ylabel('Frequency (Hz)')
-fig6.suptitle('Spectrogram of original and resynthesized signals')
+tmp_title='Spectrogram of original and resynthesized signals'
 plt.savefig(plotoutpath+'all_spect.eps')
+with open(plotoutpath+'all_spect.txt','w') as f:
+    f.write(tmp_title+'%')
 
 if (show_plots):
     plt.show()

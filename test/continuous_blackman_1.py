@@ -46,44 +46,52 @@ W=np.r_[W[_N/2:],W[:_N/2]]
 W2=np.r_[W2[_N/2:],W2[:_N/2]]
 plt.figure(1)
 plt.plot(n__,w_,c='k')
-plt.title('$\mathcal{C}^{1}$ 4-Term Blackman-Harris: Time Domain')
+tmp_title='$\mathcal{C}^{1}$ 4-Term Blackman-Harris: Time Domain'
 plt.xlabel('Sample number')
 plt.ylabel('Sample value')
 ax1=plt.gca()
 ax1.set_ylim(0,1.1)
 ax1.set_xlim(-N/2,N/2)
 plt.savefig(foutpath+'c1_blackman_td.eps')
+with open(foutpath+'c1_blackman_td.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(2)
 plt.plot(n_/float(N)*2.*np.pi,20*np.log10(np.abs(W)),c='k')
-plt.title('$\mathcal{C}^{1}$ 4-Term Blackman-Harris: Frequency Domain')
+tmp_title='$\mathcal{C}^{1}$ 4-Term Blackman-Harris: Frequency Domain'
 plt.xlabel('Frequency (Radians/Second)')
 plt.ylabel('Power (dB)')
 ax2=plt.gca()
 ax2.set_ylim(-140,5)
 ax2.set_xlim(-np.pi,np.pi)
 plt.savefig(foutpath+'c1_blackman_fd.eps')
+with open(foutpath+'c1_blackman_fd.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(3)
 plt.plot(n__,w2_,c='k')
-plt.title('Minimum 4-Term Blackman-Harris: Time Domain')
+tmp_title='Minimum 4-Term Blackman-Harris: Time Domain'
 plt.xlabel('Sample number')
 plt.ylabel('Sample value')
 ax3=plt.gca()
 ax3.set_ylim(0,1.1)
 ax3.set_xlim(-N/2,N/2)
 plt.savefig(foutpath+'min4_blackman_td.eps')
+with open(foutpath+'min4_blackman_td.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(4)
 plt.plot(n_/float(N)*2.*np.pi,20*np.log10(np.abs(W2)),c='k')
-plt.title('Minimum 4-Term Blackman-Harris: Frequency Domain')
+tmp_title='Minimum 4-Term Blackman-Harris: Frequency Domain'
 plt.xlabel('Frequency (Radians/Second)')
 plt.ylabel('Power (dB)')
 ax4=plt.gca()
 ax4.set_ylim(-140,5)
 ax4.set_xlim(-np.pi,np.pi)
 plt.savefig(foutpath+'min4_blackman_fd.eps')
+with open(foutpath+'min4_blackman_fd.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(5)
 plt.plot(n_,20*np.log10(np.abs(W)),c='k')
 plt.plot([min(n_),max(n_)],[-6,-6])
-plt.title('Continuous blackman for examining')
+tmp_title='Continuous blackman for examining'
 print 'Height of highest side lobe for C1 window: %f' % (20*np.log10(
     np.abs(W_orig[ov*6.5])),)
 print '6-dB bandwidth is 2.66 (from visual inspection)'
@@ -97,10 +105,12 @@ plt.plot(n__[:n_cu],w2_[:n_cu],label='Minimum 4-Term Blackman-Harris',c='k')
 plt.legend(loc='best')
 plt.ylim(0,max(w_[:n_cu])*1.25)
 plt.xlim(n__[0],n__[n_cu-1])
-plt.title('Comparison of endpoints of window in time-domain')
+tmp_title='Comparison of endpoints of window in time-domain'
 plt.xlabel('Sample number')
 plt.ylabel('Sample value')
 plt.savefig(foutpath+'c1_vs_min_blackman_closeup.eps')
+with open(foutpath+'c1_vs_min_blackman_closeup.txt','w') as f:
+    f.write(tmp_title+'%')
 
 if (show_plots):
     plt.show()

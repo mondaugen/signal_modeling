@@ -810,45 +810,45 @@ outfilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/pl
 
 if (save_figs):
     with open(outfilepath+'orig_data_plot_title.txt','w') as f:
-        f.write(fig1_suptitle)
+        f.write(fig1_suptitle+'%')
     with open(outfilepath+'orig_spur_data_plot_title.txt','w') as f:
-        f.write(fig2_suptitle)
+        f.write(fig2_suptitle+'%')
     with open(outfilepath+'class_data_plot_title.txt','w') as f:
-        f.write(fig3_suptitle)
+        f.write(fig3_suptitle+'%')
     with open(outfilepath+'class_pcs_plot_title.txt','w') as f:
-        f.write(fig4_suptitle)
+        f.write(fig4_suptitle+'%')
     with open(outfilepath+'source_1_est_plot_title.txt','w') as f:
-        f.write(fig5_suptitle)
+        f.write(fig5_suptitle+'%')
     with open(outfilepath+'source_2_est_plot_title.txt','w') as f:
-        f.write(fig6_suptitle)
+        f.write(fig6_suptitle+'%')
     with open(outfilepath+'source_1_smooth_freq_plot_title.txt','w') as f:
-        f.write(fig7_suptitle)
+        f.write(fig7_suptitle+'%')
     with open(outfilepath+'source_2_smooth_freq_plot_title.txt','w') as f:
-        f.write(fig8_suptitle)
+        f.write(fig8_suptitle+'%')
     with open(outfilepath+'source_1_true_plot_title.txt','w') as f:
-        f.write(fig9_suptitle)
+        f.write(fig9_suptitle+'%')
     with open(outfilepath+'source_2_true_plot_title.txt','w') as f:
-        f.write(fig10_suptitle)
+        f.write(fig10_suptitle+'%')
     with open(outfilepath+'source_1_smooth_amp_plot_title.txt','w') as f:
-        f.write(fig11_suptitle)
+        f.write(fig11_suptitle+'%')
     with open(outfilepath+'source_2_smooth_amp_plot_title.txt','w') as f:
-        f.write(fig12_suptitle)
+        f.write(fig12_suptitle+'%')
     with open(outfilepath+'source_1_spec_plot_title.txt','w') as f:
-        f.write(fig13_suptitle)
+        f.write(fig13_suptitle+'%')
     with open(outfilepath+'source_2_spec_plot_title.txt','w') as f:
-        f.write(fig14_suptitle)
+        f.write(fig14_suptitle+'%')
     with open(outfilepath+'source_1_tdrp_plot_title.txt','w') as f:
-        f.write(fig15_suptitle)
+        f.write(fig15_suptitle+'%')
     with open(outfilepath+'source_2_tdrp_plot_title.txt','w') as f:
-        f.write(fig16_suptitle)
+        f.write(fig16_suptitle+'%')
     with open(outfilepath+'af_plot_title.txt','w') as f:
-        f.write(fig17_suptitle)
+        f.write(fig17_suptitle+'%')
     with open(outfilepath+'mu_plot_title.txt','w') as f:
-        f.write(fig19_suptitle)
+        f.write(fig19_suptitle+'%')
     with open(outfilepath+'psi_plot_title.txt','w') as f:
-        f.write(fig20_suptitle)
+        f.write(fig20_suptitle+'%')
     with open(outfilepath+'smooth_freq_amp_sol_plot_title.txt','w') as f:
-        f.write(fig21_suptitle)
+        f.write(fig21_suptitle+'%')
 
 with open(outfilepath+'_plots.INFO','w') as f:
     f.write(infotext)

@@ -40,7 +40,7 @@ nodes=[
         ]
 
 plt.figure(1)
-plt.title('Possible graph connections')
+tmp_title='Possible graph connections'
 plt.xlabel("$\\theta_{0}$")
 plt.ylabel("$\\theta_{1}$")
 
@@ -80,6 +80,8 @@ for k in xrange(len(F)-1):
 
 ax1.set_xticks(np.array(list(xrange(F[-1][0][0][0]+1)),dtype=np.int))
 plt.savefig(fig1_outpath)
+with open(fig1_outpath[:fig1_outpath.rfind('.eps')]+'.txt','w') as f:
+    f.write(tmp_title+'%')
 
 # Find distances using greedy method
 D_grd=np.zeros((len(F[0]),len(F[1]),len(F[2])))
@@ -118,7 +120,7 @@ for j in xrange(J):
     K_.remove(k_)
 
 plt.figure(2)
-plt.title('Two shortest paths using the greedy method')
+tmp_title='Two shortest paths using the greedy method'
 plt.xlabel('$\\theta_{0}$')
 plt.ylabel('$\\theta_{1}$')
 ax2=plt.gca()
@@ -164,6 +166,8 @@ with open(grd_outpath,'w') as f:
     f.write('%f' % (cs_grd_tot,))
 ax2.set_xticks(np.array(list(xrange(F[-1][0][0][0]+1)),dtype=np.int))
 plt.savefig(fig2_outpath)
+with open(fig2_outpath[:fig2_outpath.rfind('.eps')]+'.txt','w') as f:
+    f.write(tmp_title+'%')
 
 # Find J shortest paths using LP
 def _lp_cost_fun(a,b):
@@ -197,7 +201,7 @@ sol=solvers.lp(d['c'],d['G'],d['h'],d['A'],d['b'])
 paths=ptpath_test.lp_sol_extract_paths(sol['x'],S_lp,F_lp)
 
 plt.figure(3)
-plt.title('Two shortest paths using the LP method')
+tmp_title='Two shortest paths using the LP method'
 plt.xlabel('$\\theta_{0}$')
 plt.ylabel('$\\theta_{1}$')
 ax3=plt.gca()
@@ -228,6 +232,8 @@ for path in paths:
 ax3.set_xticks(np.array(list(xrange(F[-1][0][0][0]+1)),dtype=np.int))
 print 'Total cost (LP): %f' % (sol['primal objective'])
 plt.savefig(fig3_outpath)
+with open(fig3_outpath[:fig3_outpath.rfind('.eps')]+'.txt','w') as f:
+    f.write(tmp_title+'%')
 #np.savetxt(c_outpath,np.array(d['c']))
 #np.savetxt(G_outpath,np.array(d['G']))
 #np.savetxt(h_outpath,np.array(d['h']))

@@ -289,7 +289,8 @@ for l in xrange(0,len(a_flt)-L,L-1):
 
 ax1.set_ylim(f_min,f_max)
 ax1.set_xlim(0.,(h-H)/float(Fs))
-ax1.set_title('Spectrogram and peak analysis, SNR %d dB' % (int(np.round(D_r)),))
+ax1.set_title('Spectrogram and peak analysis')
+tmp_title='Compare greedy and LP partial tracking on chirps in noise, SNR %d dB' % (int(np.round(D_r)),)
 ax2.set_ylim(f_min,f_max)
 ax2.set_xlim(0.,(h-H)/float(Fs))
 ax2.set_title('Greedy method')
@@ -300,6 +301,8 @@ ax3.set_xlabel("Time in seconds")
 ax2.set_ylabel("Frequency in Hz")
 
 fig.savefig(plotoutpath)
+with open(plotoutpath[:plotoutpath.rfind('.eps')]+'.txt','w') as f:
+    f.write(tmp_title+'%')
 
 if show_plot:
     plt.show()

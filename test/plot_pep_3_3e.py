@@ -8,12 +8,14 @@ import sigmod as sm
 import sklearn.mixture
 import os
 import matplotlib.ticker as ticker
+import matplotlib as mpl
 
 # Note: some plots produced as pdf instead of eps to preserve transparency.
 # Render using pdflatex
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='partial_classification_acgtr_xylo_'
+mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -61,9 +63,9 @@ for p in p_info:
         ax4.scatter(np.imag(p[0][1][1]),np.real(p[0][1][0]),c='k')
         a_starts.append(np.real(p[0][1][0]))
         f_avg_calc.append(np.imag(p[0][1][1]))
-ax4.set_title('Starting amplitude vs frequency and thresholding boundary')
-ax4.set_xlabel('Frequency (radians/s)')
-ax4.set_ylabel('Log-Amplitude')
+ax4_title='Starting amplitude vs. frequency and thresholding boundary'
+ax4.set_xlabel('Frequency ($\\frac{\\text{rad}}{\\text{s}}$)')
+ax4.set_ylabel('Log-amplitude')
 
 # Calculate line function for thresholding initial amplitude values of partials
 # If starting values of amplitude under this value, these partials are
@@ -77,6 +79,8 @@ ax4.plot([0,max(f_avg_calc)],
         [as_v_f_th[0]*asvf_th,
             as_v_f_th[0]+as_v_f_th[1]*max(f_avg_calc)*asvf_th],c='k')
 fig4.savefig(plotoutpath+'a_vs_f_thresh.eps')
+with open(plotoutpath+'a_vs_f_thresh.txt','w') as f:
+    f.write(ax4_title+'%')
 
 
 # plot the partials
@@ -115,8 +119,8 @@ for p in p_info:
 
 ax.set_xlabel('Time ($\\times 10^{4}$ samples)',linespacing=4)
 ax.set_ylabel('Frequency (KHz)',linespacing=4)
-ax.set_zlabel('Log-Amplitude',linespacing=4)
-ax.set_title('Partial trajectories')
+ax.set_zlabel('Log-amplitude',linespacing=4)
+ax_title='Partial trajectories'
 # Azimuth 54, elevation 19
 ax.view_init(19,54)
 # Scale labels
@@ -131,15 +135,17 @@ ticks_spec_freq=ticker.FuncFormatter(_freq_scale_func)
 ax.xaxis.set_major_formatter(ticks_spec_samp)
 ax.yaxis.set_major_formatter(ticks_spec_freq)
 fig1.savefig(plotoutpath+'partial_trajectories.pdf')
+with open(plotoutpath+'partial_trajectories.txt','w') as f:
+    f.write(ax_title+'%')
 
 ax3.set_xlabel('Time (samples)')
 ax3.set_ylabel('Frequency (Hz)')
-ax3.set_title('Partial trajectories')
+ax3_title='Partial trajectories'
 
 X=np.array(X).T
 A=sm.pca_ne(X,'cov')
 ax2.scatter(A[0,:],A[1,:],c='k')
-ax2.set_title('Unknown memberships')
+ax2_title='Unknown memberships'
 ax2.set_xlabel('1st PC')
 ax2.set_ylabel('2nd PC')
 
@@ -204,7 +210,7 @@ m1_idx=np.where(gmm_grps==0)[0]
 m2_idx=np.where(gmm_grps==1)[0]
 ax5.scatter(A[0,m1_idx],A[1,m1_idx],c='k',lw=0,label='Source 1')
 ax5.scatter(A[0,m2_idx],A[1,m2_idx],c='grey',lw=0,label='Source 2')
-ax5.set_title('Estimated memberships')
+ax5_title='Estimated memberships'
 ax5.set_xlabel('$a_{0}$')
 ax5.set_ylabel('$a_{1}$')
 ax5.plot(A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
@@ -213,6 +219,8 @@ ax5.plot(A_x[a_lma_arg_c[np.r_[a_lma_ma_arg,a_lma_mi_arg]]],
 ax5.legend(loc='upper left')
 ax5.contour(A_X,A_Y,A_Z,cmap='Greys')
 fig5.savefig(plotoutpath+'estimated_memberships.eps')
+with open(plotoutpath+'estimated_memberships.txt','w') as f:
+    f.write(ax5_title+'%')
 
 # Dictionary to write partial sets to
 ptls_out=dict()

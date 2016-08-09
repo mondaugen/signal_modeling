@@ -84,12 +84,14 @@ W,dW=sm.w_dw_sum_cos(N,'c1-blackman-4')
 # Plot
 plt.figure(1)
 plt.specgram(x,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
-plt.title('Original signal: (spectrogram)')
+tmp_title='Original signal: (spectrogram)'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.gca().set_xlim(0,(len(x)-N)/float(Fs))
 plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*1.5)
 plt.savefig(plotoutpath+'_original_spec.eps')
+with open(plotoutpath+'_original_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 
 for h in np.arange(0,M-N,H):
     x_=x[h:h+N]
@@ -220,12 +222,14 @@ with open(plotoutpath+'_est_x.dat','w') as f:
 
 plt.figure(2)
 plt.specgram(y,NFFT=N,noverlap=(N-H),Fs=Fs,norm=clr_mapper,cmap="Greys")
-plt.title('Estimated signal (spectrogram)')
+tmp_title='Estimated signal (spectrogram)'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.gca().set_xlim(0,(h-N)/float(Fs))
 plt.gca().set_ylim(f_t.min()*0.5,f_t.max()*1.5)
 plt.savefig(plotoutpath+'_estimated_spec.eps')
+with open(plotoutpath+'_estimated_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 
 plt.figure(3)
 # Plot length
@@ -234,18 +238,22 @@ N_plt_1=3000
 plt.plot(m/float(Fs),np.real(x),c='k',label='True')
 plt.plot(m/float(Fs),np.real(y),c='Gray',label='Estimated')
 plt.gca().set_xlim(N_plt_0/float(Fs),N_plt_1/float(Fs))
-plt.title('True vs. Estimated signal (real part)')
+tmp_title='True vs. Estimated signal (real part)'
 plt.ylabel('Amplitude')
 plt.xlabel('Time (seconds)')
 plt.legend()
 plt.savefig(plotoutpath+'_orig_vs_est.eps')
+with open(plotoutpath+'_orig_vs_est.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(4)
 plt.plot(m/float(Fs),20.*np.log10(np.abs(y-x)),c='k')
 plt.gca().set_xlim(0,(h-N)/float(Fs))
-plt.title('Original vs. estimated signal: error')
+tmp_title='Original vs. estimated signal: error'
 plt.ylabel('Amplitude (dB power)')
 plt.xlabel('Time (seconds)')
 plt.savefig(plotoutpath+'_error.eps')
+with open(plotoutpath+'_error.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(5)
 tmp=np.array([np.log(eb_ph_)/np.log(10.) for eb_ph_ in
     eb_ph])
@@ -256,14 +264,16 @@ ma_,mai_=sm.lextrem(tmp,comp='max')
 plt.plot(np.arange(len(eb_a))[mai_],tmp[mai_],
         label="Amplitude",c='k',ls=':')
 plt.ylabel('Absolute error bound ($\log_{10}$)')
-plt.title('Polynomial evaluation error bound')
+tmp_title='Polynomial evaluation error bound'
 plt.legend(loc='best')
 plt.savefig(plotoutpath+'_poly_eval_err.eps')
+with open(plotoutpath+'_poly_eval_err.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(6)
 plt.plot(np.arange(len(eb_c5)),np.log(np.array([eb_c5,eb_c4,eb_c3,eb_d5,eb_d4,eb_d3]).T)/np.log(10.))
 plt.xlabel('Frame number')
 plt.ylabel('Absolute error bound')
-plt.title('Polynomial evaluation error bound')
+tmp_title='Polynomial evaluation error bound'
 
 if (show_plots):
     plt.show()

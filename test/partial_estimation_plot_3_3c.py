@@ -9,11 +9,19 @@ from copy import deepcopy
 import ptpath_test as ppt
 import pickle
 import os
+import matplotlib as mpl
+import neplot as nep
 
-show_plots=True
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=4.
+clr_mapper=nep.PowerNormalize(clr_gamma)
+
+show_plots=False
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='partial_estimation_acgtr_xylo_'
+mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -301,11 +309,12 @@ plt.imshow(20.*np.log10(np.abs(Y)),
         origin='lower',
         aspect='auto',
         interpolation='bilinear',
+        norm=clr_mapper,
         cmap="Greys")
 
 plt.ylim(0,M/2)
 plt.xlim(0,Y.shape[1])
-plt.title('Spectrogram')
+tmp_title='Spectrogram of mixture'
 plt.ylabel('Frequency (KHz)')
 plt.xlabel('Sample number')
 newxlabels=[]
@@ -320,6 +329,8 @@ ticks_spec_y=ticker.FuncFormatter(_ticks_spec_y_form)
 plt.gca().xaxis.set_major_formatter(ticks_spec_x)
 plt.gca().yaxis.set_major_formatter(ticks_spec_y)
 plt.savefig(plotoutpath+'specgram.eps')
+with open(plotoutpath+'specgram.txt','w') as f:
+    f.write(tmp_title+'%')
 #for xl in plt.gca().get_xticklabels():
 #    xl.set_text('%d' % (xl.get_position()[0]*H,))
 #    newxlabels.append(xl)
@@ -350,7 +361,7 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
                 n1=s_a[dst].frame_num+k_a
                 k0=np.imag(s_a[src].value[1])/(2.*np.pi)*M
                 k1=np.imag(s_a[dst].value[1])/(2.*np.pi)*M
-                plt.plot([n0,n1],[k0,k1],c='w')
+                plt.plot([n0,n1],[k0,k1],c='k')
                 _f_avg+=k0
                 _da_avg+=np.real(s_a[src].value[1])
                 _p_info.append([n0*H,s_a[src].value])
@@ -365,9 +376,11 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
 with open(fout,'w') as f:
     pickle.dump(p_info,f)
 
-plt.title('Spectrogram and partial trajectories')
+tmp_title='Spectrogram and partial trajectories of mixture'
 
 plt.savefig(plotoutpath+'specgram_partials.eps')
+with open(plotoutpath+'specgram_partials.txt','w') as f:
+    f.write(tmp_title+'%')
 
 # plot path cost versus length
 plt.figure(2)
@@ -379,12 +392,14 @@ mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
 plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj,'k')
 plt.xlabel('Path length (hops)')
 plt.ylabel('$( \\boldsymbol{c}^{T}\\boldsymbol{x}-1 ) \\times 10^5$')
-plt.title('Path cost vs. length and thresholding boundary.')
+tmp_title='Path cost vs. length and thresholding boundary'
 plt.xlim(0,max([len(q_) for q_ in q_a]))
 cost_scale=1e5
 ticks_y=ticker.FuncFormatter(lambda x, pos: '{0:1.2f}'.format((x-1)*cost_scale))
 plt.gca().yaxis.set_major_formatter(ticks_y)
 plt.savefig(plotoutpath+'pcost_vs_bound.eps')
+with open(plotoutpath+'pcost_vs_bound.txt','w') as f:
+    f.write(tmp_title+'%')
 
 for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
     if (_f_avg>0.):
@@ -393,5 +408,5 @@ for q_,_f_avg,_da_avg in zip(q_a,f_avg,da_avg):
         plt.figure(4)
         plt.scatter([_f_avg],[_da_avg])
 
-
-plt.show()
+if (show_plots):
+    plt.show()

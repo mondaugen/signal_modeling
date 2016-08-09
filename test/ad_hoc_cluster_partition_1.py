@@ -5,7 +5,7 @@ import os
 
 # Illustrates ad hoc cluster paritioning with a graph
 
-show_plot=True
+show_plot=False
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
@@ -42,7 +42,10 @@ plt.xlim(x0,x1)
 plt.ylim(0.,np.max(y_ma)*1.1)
 plt.xlabel('$\\theta$')
 plt.ylabel('$\\mathrm{p}(\\theta)$')
-plt.title('Partitioning example')
+#plt.title('Partitioning example')
+with open(plotoutpath[:plotoutpath.rfind('.eps')]+'_plot_title.txt','w') as f:
+    f.write('Paritioning example'+'%')
+
 # build legend
 l1=plt.Rectangle((0,0),10,10,color='lightgrey',lw=0)
 l2=plt.Rectangle((0,0),10,10,color='grey',lw=0)

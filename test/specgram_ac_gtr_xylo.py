@@ -3,6 +3,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import neplot as nep
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=4.
+clr_mapper=nep.PowerNormalize(clr_gamma)
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 
@@ -31,32 +36,40 @@ Fs=16000
 M=4096
 
 plt.figure(1)
-plt.specgram(ac_gtr_orig,M,Fs,noverlap=M-H,cmap='Greys')
-plt.title('Spectrogram of Acoustic Guitar')
+plt.specgram(ac_gtr_orig,M,Fs,noverlap=M-H,norm=clr_mapper,cmap='Greys')
+tmp_title='Spectrogram of acoustic guitar'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.xlim(0,(len(ac_gtr_orig)-H)/Fs)
 plt.savefig(plotoutpath+'ac_gtr_orig_spec.eps')
+with open(plotoutpath+'ac_gtr_orig_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(2)
-plt.specgram(ac_gtr_ss,M,Fs,noverlap=M-H,cmap='Greys')
-plt.title('Spectrogram of Source Separated Acoustic Guitar')
+plt.specgram(ac_gtr_ss,M,Fs,noverlap=M-H,norm=clr_mapper,cmap='Greys')
+tmp_title='Spectrogram of source separated acoustic guitar'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.xlim(0,(len(ac_gtr_ss)-H)/Fs)
 plt.savefig(plotoutpath+'ac_gtr_ss_spec.eps')
+with open(plotoutpath+'ac_gtr_ss_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(3)
-plt.specgram(xylo_orig,M,Fs,noverlap=M-H,cmap='Greys')
-plt.title('Spectrogram of Xylophone')
+plt.specgram(xylo_orig,M,Fs,noverlap=M-H,norm=clr_mapper,cmap='Greys')
+tmp_title='Spectrogram of xylophone'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.xlim(0,(len(xylo_orig)-H)/Fs)
 plt.savefig(plotoutpath+'xylo_orig_spec.eps')
+with open(plotoutpath+'xylo_orig_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 plt.figure(4)
-plt.specgram(xylo_ss,M,Fs,noverlap=M-H,cmap='Greys')
-plt.title('Spectrogram of Source Separated Xylophone')
+plt.specgram(xylo_ss,M,Fs,noverlap=M-H,norm=clr_mapper,cmap='Greys')
+tmp_title='Spectrogram of source separated xylophone'
 plt.xlabel('Time (seconds)')
 plt.ylabel('Frequency (Hz)')
 plt.xlim(0,(len(xylo_ss)-H)/Fs)
 plt.savefig(plotoutpath+'xylo_ss_spec.eps')
+with open(plotoutpath+'xylo_ss_spec.txt','w') as f:
+    f.write(tmp_title+'%')
 
 plt.show()
