@@ -82,7 +82,7 @@ with open(chirp_param_out_path,'w') as fo:
         #        (k_fo,a1_0,a1_1*k,a1_2*k*1.e6,f1_0*k,f1_1*k))
         a1_2_exp=np.floor(np.log10(np.abs(a1_2*k)))
         fo.write('%d & %d & %2.2f & %2.2f $\\times 10^{%d}$ & %d & %d \\\\\n' %
-                (k_fo,a1_0,a1_1*k,a1_2*k/(10.**a1_2_exp),int(a1_2_exp),f0_0*k,f0_1*k))
+                (k_fo,a1_0,a1_1*k,a1_2*k/(10.**a1_2_exp),int(a1_2_exp),f1_0*k,f1_1*k))
         k_fo+=1
 #for k in np.arange(1,K+1):
 #    phi_n=np.polyval([0.5*a0_2*k,a0_1*k,a0_0],n)

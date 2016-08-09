@@ -1,0 +1,3 @@
+# run as
+# source ./setpypath
+export PYTHONPATH=$PWD:$PWD/test:$PYTHONPATH
