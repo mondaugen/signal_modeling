@@ -6,6 +6,11 @@ import ptpath
 from cvxopt import solvers
 import ptpath_test
 import os
+import neplot as nep
+# Color contrast config
+# values further from 1, more contrast
+clr_gamma=4.
+clr_mapper=nep.PowerNormalize(clr_gamma)
 
 show_plot=False
 
@@ -118,9 +123,9 @@ M_ddm=M/2
 # number of bins after last maximum to skip
 i_ddm=3
 
-Pxx1, freqs1, frames1, im1 = ax1.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
-ax2.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
-ax3.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,cmap='Greys')
+Pxx1, freqs1, frames1, im1 = ax1.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,norm=clr_mapper,cmap='Greys')
+ax2.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,norm=clr_mapper,cmap='Greys')
+ax3.specgram(x0_n+x1_n,NFFT=M,Fs=Fs,norm=clr_mapper,cmap='Greys')
 
 a=[]
 a0=[]
