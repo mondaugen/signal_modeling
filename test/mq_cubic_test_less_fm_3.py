@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import sigmod as sm
 import neplot as nep
+import matplotlib as mpl
 
 show_plots=False
 
@@ -21,6 +22,8 @@ plotoutpath+='mq_mod_quintic'
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
+mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
+                                       r'\usepackage{mathrsfs}']
 
 # Hop size
 H=256
@@ -264,7 +267,7 @@ ma_,mai_=sm.lextrem(tmp,comp='max')
 plt.plot(np.arange(len(eb_a))[mai_],tmp[mai_],
         label="Amplitude",c='k',ls=':')
 plt.ylabel('Absolute error bound ($\log_{10}$)')
-tmp_title='Polynomial evaluation error bound'
+tmp_title=r'$\mathscr{S}_{2,5}$ evaluation error bound'
 plt.legend(loc='best')
 plt.savefig(plotoutpath+'_poly_eval_err.eps')
 with open(plotoutpath+'_poly_eval_err.txt','w') as f:

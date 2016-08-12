@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sigmod as sm
 import neplot as nep
+import matplotlib as mpl
 
 # Color contrast config
 # values further from 1, more contrast
@@ -10,9 +11,12 @@ clr_gamma=4.
 clr_mapper=nep.PowerNormalize(clr_gamma)
 
 show_plots=False
+#show_plots=True
 
 plt.rc('text',usetex=True)
 plt.rc('font',family='serif')
+mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',
+                                       r'\usepackage{mathrsfs}']
 
 plotoutpath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 plotoutpath+='mq_mod_err_comp_'
@@ -21,10 +25,10 @@ phase_err_mod_2pi=True
 
 fpre=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 labels={
-        'mq_mod_quintic':'DDM Quintic',
-        'mq_mod_cubic':'DDM Cubic',
-        'mq_cubic': 'MQ Cubic',
-        'true_arg': 'True'
+        'mq_mod_quintic':'$\mathscr{S}_{2,5}$',
+        'mq_mod_cubic':r'$\mathscr{S}_{2,3}$',
+        'mq_cubic': r'$\mathscr{S}_{1,3}$',
+        'true_arg': r'$\mathscr{T}_{3,4}$'
 }
 line_styles={
         'mq_mod_quintic':':',
@@ -72,7 +76,8 @@ plt.figure(1)
 for k in d_ph.keys():
     plt.plot(n,np.unwrap(d_ph[k]),color=colors[k],ls=line_styles[k],label=labels[k])
 plt.legend()
-tmp_title='Phase function'
+tmp_title=(r'$\mathscr{T}_{3,4}$, $\mathscr{S}_{1,3}$, '
+    + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$: Phase functions')
 plt.xlim([0,8000])
 plt.ylim([0,750])
 plt.xlabel('Time (samples)')
@@ -100,7 +105,8 @@ for k in d_a.keys():
             ls=line_styles[k],
             label=labels[k])
 plt.legend()
-tmp_title='Log-amplitude function'
+tmp_title=(r'$\mathscr{T}_{3,4}$, $\mathscr{S}_{1,3}$, '
+    + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$: Log-amplitude functions')
 plt.xlim([2300,3900])
 plt.ylim([0.22,0.32])
 plt.xlabel('Time (samples)')
@@ -111,16 +117,18 @@ with open(plotoutpath+'logamp_func.txt','w') as f:
 
 plt.figure(3)
 for k in d_ph.keys():
-    tmp=d_ph[k]-d_ph['true_arg']
-    if (phase_err_mod_2pi):
-        tmp+=np.pi
-        tmp%=(2.*np.pi)
-        tmp-=np.pi
-    plt.plot(n,tmp,
-            color=colors[k],
-            ls=line_styles[k],
-            label=labels[k])
-tmp_title='Phase function error'
+    if k != 'true_arg':
+        tmp=d_ph[k]-d_ph['true_arg']
+        if (phase_err_mod_2pi):
+            tmp+=np.pi
+            tmp%=(2.*np.pi)
+            tmp-=np.pi
+        plt.plot(n,tmp,
+                color=colors[k],
+                ls=line_styles[k],
+                label=labels[k])
+tmp_title=(r'$\mathscr{T}_{3,4}$ vs. $\mathscr{S}_{1,3}$, ' 
+    + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$: Phase function error')
 plt.xlim([0,7750])
 plt.ylim([-np.pi*1.1,np.pi*1.1])
 plt.xlabel('Time (samples)')
@@ -133,12 +141,15 @@ with open(plotoutpath+'phase_err.txt','w') as f:
 plt.figure(4)
 for k in d_a.keys():
     #plt.plot(n,np.unwrap(d_a[k])-d_a['true_arg'],
-    plt.plot(n,d_a[k]-d_a['true_arg'],
-            color=colors[k],
-            ls=line_styles[k],
-            label=labels[k])
+    if k != 'true_arg':
+        plt.plot(n,d_a[k]-d_a['true_arg'],
+                color=colors[k],
+                ls=line_styles[k],
+                label=labels[k])
 plt.legend()
-tmp_title='Log-amplitude function error'
+tmp_title=(r'$\mathscr{T}_{3,4}$ vs. $\mathscr{S}_{1,3}$, '
+    + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$: ' 
+    + r'Log-amplitude function error')
 plt.xlim([512,7750])
 plt.ylim([-0.06,0.06])
 plt.xlabel('Time (samples)')
@@ -159,7 +170,8 @@ for k in d_x.keys():
                 color=colors[k],
                 ls=line_styles[k],
                 label=labels[k])
-tmp_title='Original vs. estimated signals: upper error bound'
+tmp_title=(r'$\mathscr{T}_{3,4}$ vs. $\mathscr{S}_{1,3}$, '
+        + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$: upper error bound')
 plt.xlabel('Time (samples)')
 plt.ylabel('Error (dB power)')
 plt.xlim([0,7750])
@@ -187,7 +199,8 @@ for k in d_xy.keys():
         asx5[x_,y_].set_xlabel('Time (seconds)')
     if (y_==0):
         asx5[x_,y_].set_ylabel('Frequency (Hz)')
-tmp_title='Spectrogram of original and resynthesized signals'
+tmp_title=(r'Spectrograms of $\mathscr{T}_{3,4}$, $\mathscr{S}_{1,3}$, '
+    + r'$\mathscr{S}_{2,3}$ and $\mathscr{S}_{2,5}$')
 plt.savefig(plotoutpath+'all_spect.eps')
 with open(plotoutpath+'all_spect.txt','w') as f:
     f.write(tmp_title+'%')

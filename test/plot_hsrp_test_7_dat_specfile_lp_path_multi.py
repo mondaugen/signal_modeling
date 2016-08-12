@@ -20,7 +20,7 @@ mpl.rcParams['legend.fontsize']='small'
 mpl.rcParams['axes.titlesize']='medium'
 
 #show_plots=False
-show_plots=False
+show_plots=True
 save_figs=True
 infilepath=os.environ['HOME']+'/Documents/development/masters_thesis/reports/plots/'
 
@@ -849,6 +849,26 @@ if (save_figs):
         f.write(fig20_suptitle+'%')
     with open(outfilepath+'smooth_freq_amp_sol_plot_title.txt','w') as f:
         f.write(fig21_suptitle+'%')
+    fig1.savefig(outfilepath+ 'orig_data.eps')
+    fig2.savefig(outfilepath+ 'orig_spur_data.eps')
+    fig3.savefig(outfilepath+ 'class_data.eps')
+    fig4.savefig(outfilepath+ 'class_pcs.eps')
+    fig5.savefig(outfilepath+ 'source_1_est.eps')
+    fig6.savefig(outfilepath+ 'source_2_est.eps')
+    fig7.savefig(outfilepath+ 'source_1_smooth_freq.eps')
+    fig8.savefig(outfilepath+ 'source_2_smooth_freq.eps')
+    fig9.savefig(outfilepath+ 'source_1_true.eps')
+    fig10.savefig(outfilepath+'source_2_true.eps')
+    fig11.savefig(outfilepath+'source_1_smooth_amp.eps')
+    fig12.savefig(outfilepath+'source_2_smooth_amp.eps')
+    fig13.savefig(outfilepath+'source_1_spec.eps')
+    fig14.savefig(outfilepath+'source_2_spec.eps')
+    fig15.savefig(outfilepath+'source_1_tdrp.eps')
+    fig16.savefig(outfilepath+'source_2_tdrp.eps')
+    fig17.savefig(outfilepath+'af.eps')
+    fig19.savefig(outfilepath+'mu.eps')
+    fig20.savefig(outfilepath+'psi.eps')
+    fig21.savefig(outfilepath+'smooth_freq_amp_sol.eps')
 
 with open(outfilepath+'_plots.INFO','w') as f:
     f.write(infotext)

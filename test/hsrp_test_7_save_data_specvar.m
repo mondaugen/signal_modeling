@@ -28,16 +28,19 @@ clrs={"black","blue","cyan","green","magenta","red","yellow"};
 B_gmm=50;
 N_pxm=2;
 Pxm=cell(N_pxm);
+f0_rp=440*2^((60-69)/12);
 [Pxm{1},opt]=harm_sines_rp(struct(
     'K',20,
     'T',0.5,
     'H',256,
-    'f0',440*2^((60-69)/12),
+    'f0',f0_rp,
     'w_no',no_f,
     'T_60',0.5,
     'mu_no',no_a,
     'A_no',no_a,
-    'f_fm',3,
+%    'f_fm',3,
+    'f_fm',5.5,
+    'A_fm',f0_rp*2^(0.25/12)-f0_rp,
     'psi_no',no_f));
 [Pxm{2},opt]=harm_sines_rp(struct(
     'K',20,
@@ -49,7 +52,9 @@ Pxm=cell(N_pxm);
     'mu_no',no_a,
     'A_no',no_a,
     'phi_fm',.8,
-    'f_fm',2,
+%    'f_fm',2,
+    'f_fm',6.5,
+    'A_fm',f0_rp*2^(0.25/12)-f0_rp,
     'psi_no',no_f));
 % percentage of spurious peaks added in relation to number of real peaks.
 spur_no=0.25;
