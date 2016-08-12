@@ -392,7 +392,7 @@ mc_plt_x=np.arange(0,max([len(q_) for q_ in q_a]))
 plt.plot(mc_plt_x,np.exp(mc_a*mc_plt_x+mc_b)+mc_adj,'k')
 plt.xlabel('Path length (hops)')
 plt.ylabel('$( \\boldsymbol{c}^{T}\\boldsymbol{x}-1 ) \\times 10^5$')
-tmp_title='Path cost vs. length and thresholding boundary'
+tmp_title=r'Path cost vs.\ length and thresholding boundary'
 plt.xlim(0,max([len(q_) for q_ in q_a]))
 cost_scale=1e5
 ticks_y=ticker.FuncFormatter(lambda x, pos: '{0:1.2f}'.format((x-1)*cost_scale))
