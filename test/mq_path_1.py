@@ -166,7 +166,7 @@ for a_ in a_flt:
         f1_=(np.imag(a__[1])+2.*np.imag(a__[2])*H)/(2.*np.pi)*Fs
         t0_=h/float(Fs)
         t1_=(h+H)/float(Fs)
-        ax1.plot([t0_,t1_],[f0_,f1_],c='w')
+        ax1.plot([t0_,t1_],[f0_,f1_],c='k')
     h+=H
 
 # Find this many best paths
@@ -218,7 +218,7 @@ for k,A_cxn_ in zip(xrange(len(a_flt)-1),A_cxn):
         f1_=np.imag(a_1[1])/(2.*np.pi)*Fs
         t0_=h/float(Fs)
         t1_=(h+H)/float(Fs)
-        ax2.plot([t0_,t1_],[f0_,f1_],c='w')
+        ax2.plot([t0_,t1_],[f0_,f1_],c='k')
     h+=H
 
 ## Compare with LP method
@@ -286,11 +286,11 @@ for S,F,paths in zip(S_all,F_all,paths_all):
         for p in path:
             fs.append(np.imag(S[p].value[1])/(2.*np.pi)*Fs)
         fs=np.array(fs)
-        ax3.plot(ts,fs,c='w')
+        ax3.plot(ts,fs,c='k')
     l+=L-1
 
 for l in xrange(0,len(a_flt)-L,L-1):
-    ax3.plot([l*H/float(Fs),l*H/float(Fs)],[f_min,f_max],c='w',ls=':')
+    ax3.plot([l*H/float(Fs),l*H/float(Fs)],[f_min,f_max],c='k',ls=':')
 
 ax1.set_ylim(f_min,f_max)
 ax1.set_xlim(0.,(h-H)/float(Fs))

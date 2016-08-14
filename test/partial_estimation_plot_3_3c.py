@@ -315,7 +315,7 @@ plt.imshow(20.*np.log10(np.abs(Y)),
 plt.ylim(0,M/2)
 plt.xlim(0,Y.shape[1])
 tmp_title='Spectrogram of mixture'
-plt.ylabel('Frequency (KHz)')
+plt.ylabel('Frequency (kHz)')
 plt.xlabel('Sample number')
 newxlabels=[]
 newylabels=[]
@@ -376,7 +376,7 @@ for s_a,f_a,x,k_a,k_a_e,cq_,q_ in zip(S_a,F_a,solx_a,K_a,K_a_e,c_q,q_a):
 with open(fout,'w') as f:
     pickle.dump(p_info,f)
 
-tmp_title='Spectrogram and partial trajectories of mixture'
+tmp_title='Spectrogram of mixture and partial trajectories'
 
 plt.savefig(plotoutpath+'specgram_partials.eps')
 with open(plotoutpath+'specgram_partials.txt','w') as f:
